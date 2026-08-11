@@ -1,5 +1,6 @@
 "use client";
 
+import { ExportActions } from "@/components/generator/ExportActions";
 import {
   FRAME_EXPORT_SIZE,
   drawFrame,
@@ -113,7 +114,13 @@ export function FramePreview() {
       <p className="text-center font-mono text-xs leading-relaxed text-hh-cream/65">
         This is your final PFP — download it or share straight to X below.
       </p>
-      <div id="export-actions" />
+      <div id="export-actions">
+        <ExportActions
+          canvasRef={canvasRef}
+          filenamePrefix="hh-goa-frame"
+          ready={ready}
+        />
+      </div>
     </motion.div>
   );
 }

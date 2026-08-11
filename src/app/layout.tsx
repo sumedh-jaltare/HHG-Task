@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Baloo_2, Fraunces, Space_Mono } from "next/font/google";
 import { GrainOverlay } from "@/components/brand/GrainOverlay";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -25,10 +26,10 @@ const baloo = Baloo_2({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getSiteUrl(),
   title: "HH Goa 2026 — Frame & Builder ID Generator",
   description:
     "Upload your photo, get a branded HH Goa 2026 X profile frame or Builder ID card in seconds.",
-  // Real OG generation comes in Prompt 5 — /og-default.png is a placeholder.
   openGraph: {
     title: "HH Goa 2026 — Frame & Builder ID Generator",
     description:

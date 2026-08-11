@@ -9,7 +9,7 @@ Shortlisting submission for the HH Goa Open Trials `#FrameInGoa` task. Visual id
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS
 - Zustand, `react-easy-crop`, `heic2any`
-- Canvas export + Vercel Blob (coming next)
+- Canvas export + Vercel Blob (Share to X link preview)
 
 ## Getting started
 
@@ -28,7 +28,7 @@ npm start       # serve the production build
 
 ## Project status
 
-Landing hero, upload/crop, circular PFP frame, and Builder ID card are in place. Download + Share to X are next.
+Landing hero, upload/crop, circular PFP frame, Builder ID card, PNG download, and Share to X are in place.
 
 Post-deadline cleanup (not a Prompt 5/6 blocker): `drawStampMark` is copy-pasted in `drawFrame.ts` and `drawCard.ts` — extract `src/lib/canvas/goaStamp.ts`.
 
@@ -39,7 +39,9 @@ Post-deadline cleanup (not a Prompt 5/6 blocker): `drawStampMark` is copy-pasted
 | `src/components/brand/` | `HeroIllustration`, `GoaStamp` |
 | `src/components/generator/` | Format toggle, upload, crop, frame + card previews |
 | `src/lib/store.ts` | Session-only Zustand generator state |
-| `src/lib/canvas/` | `drawFrame` + `drawCard` (1080 export canvases) |
+| `src/lib/canvas/` | `drawFrame` + `drawCard` + PNG export helpers |
+| `src/app/s/page.tsx` | Share landing + OG/Twitter card for X |
+| `src/app/api/upload-share/` | Vercel Blob upload for desktop share fallback |
 | `src/lib/image/` | HEIC normalize + crop-to-data-URL |
 | `src/lib/utils.ts` | `cn()` classname helper |
 | `tailwind.config.ts` | `hh.*` colors, display/mono fonts, stamp shadow |
@@ -57,4 +59,11 @@ Post-deadline cleanup (not a Prompt 5/6 blocker): `drawStampMark` is copy-pasted
 
 ## Deploy
 
-Vercel is the intended host (Blob storage for generated assets). Connect the repo and deploy — no extra build config required yet.
+Vercel is the intended host. After connecting the repo:
+
+1. Attach a Blob store (`vercel blob store add`, or via the Vercel dashboard). That creates `BLOB_READ_WRITE_TOKEN`.
+2. Set `NEXT_PUBLIC_SITE_URL` to the deployment origin (preview vs prod).
+3. Optionally set `NEXT_PUBLIC_BLOB_HOSTNAME` to the store hostname (e.g. `xyz.public.blob.vercel-storage.com`) so `/s` only accepts that host as `og:image`.
+4. For local desktop-share testing, run `vercel env pull`.
+
+Without a Blob token, **Download** still works. **Share to X** uses the native share sheet on phones that support image attach; the desktop link-preview path needs the token.

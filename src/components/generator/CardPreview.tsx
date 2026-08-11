@@ -1,5 +1,6 @@
 "use client";
 
+import { ExportActions } from "@/components/generator/ExportActions";
 import {
   CARD_EXPORT_HEIGHT,
   CARD_EXPORT_WIDTH,
@@ -95,7 +96,13 @@ export function CardPreview() {
       <p className="text-center font-mono text-xs leading-relaxed text-hh-cream/65">
         This is your Builder ID — download it or share straight to X below.
       </p>
-      <div id="export-actions" />
+      <div id="export-actions">
+        <ExportActions
+          canvasRef={canvasRef}
+          filenamePrefix="hh-goa-builder-id"
+          ready={ready}
+        />
+      </div>
     </motion.div>
   );
 }

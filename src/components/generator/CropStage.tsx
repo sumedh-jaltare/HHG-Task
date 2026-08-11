@@ -6,7 +6,7 @@ import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import Cropper, { type Area } from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function CropStage() {
   const format = useGeneratorStore((s) => s.format);
@@ -21,6 +21,10 @@ export function CropStage() {
   const [error, setError] = useState<string | null>(null);
 
   const aspect = ASPECT_BY_FORMAT[format];
+
+  useEffect(() => {
+    setCropPixels(null);
+  }, [format, rawImageUrl]);
 
   const onCropComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
     setCropPixels(croppedAreaPixels);

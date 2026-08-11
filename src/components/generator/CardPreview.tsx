@@ -1,0 +1,101 @@
+"use client";
+
+import {
+  CARD_EXPORT_HEIGHT,
+  CARD_EXPORT_WIDTH,
+  drawCard,
+} from "@/lib/canvas/drawCard";
+import { useGeneratorStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+
+export function CardPreview() {
+  const format = useGeneratorStore((s) => s.format);
+  const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
+  const name = useGeneratorStore((s) => s.builderDetails.name);
+  const role = useGeneratorStore((s) => s.builderDetails.role);
+  const title = useGeneratorStore((s) => s.builderDetails.title);
+  const handle = useGeneratorStore((s) => s.builderDetails.handle);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawGen = useRef(0);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (format !== "card" || !croppedImageUrl) {
+      setReady(false);
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    const gen = ++drawGen.current;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const offscreen = document.createElement("canvas");
+        offscreen.width = CARD_EXPORT_WIDTH;
+        offscreen.height = CARD_EXPORT_HEIGHT;
+        const offCtx = offscreen.getContext("2d");
+        if (!offCtx) return;
+        await drawCard(
+          offCtx,
+          croppedImageUrl,
+          { name, role, title, handle },
+          CARD_EXPORT_WIDTH,
+          CARD_EXPORT_HEIGHT,
+        );
+        if (drawGen.current !== gen) return;
+        ctx.clearRect(0, 0, CARD_EXPORT_WIDTH, CARD_EXPORT_HEIGHT);
+        ctx.drawImage(offscreen, 0, 0);
+        setReady(true);
+      })();
+    }, 80);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [
+    format,
+    croppedImageUrl,
+    name,
+    role,
+    title,
+    handle,
+  ]);
+
+  if (format !== "card" || !croppedImageUrl) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="space-y-5"
+    >
+      <div className="relative mx-auto w-full max-w-[360px]">
+        {!ready ? (
+          <div
+            aria-hidden
+            className="absolute inset-0 animate-pulse rounded-2xl bg-hh-green-700"
+          />
+        ) : null}
+        <canvas
+          ref={canvasRef}
+          width={CARD_EXPORT_WIDTH}
+          height={CARD_EXPORT_HEIGHT}
+          className={cn(
+            "mx-auto aspect-[3/4] w-full max-w-[360px] rounded-2xl shadow-stamp",
+            ready ? "opacity-100" : "opacity-0",
+          )}
+        />
+      </div>
+      <p className="text-center font-mono text-xs leading-relaxed text-hh-cream/65">
+        This is your Builder ID — download it or share straight to X below.
+      </p>
+      <div id="export-actions" />
+    </motion.div>
+  );
+}

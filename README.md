@@ -28,15 +28,18 @@ npm start       # serve the production build
 
 ## Project status
 
-Landing hero and the shared upload/crop pipeline are in place. Canvas frame + Builder ID renderers are next.
+Landing hero, upload/crop, circular PFP frame, and Builder ID card are in place. Download + Share to X are next.
+
+Post-deadline cleanup (not a Prompt 5/6 blocker): `drawStampMark` is copy-pasted in `drawFrame.ts` and `drawCard.ts` — extract `src/lib/canvas/goaStamp.ts`.
 
 | Path | Role |
 | --- | --- |
 | `src/app/page.tsx` | Landing hero |
 | `src/app/layout.tsx` | Fonts, metadata, grain overlay |
 | `src/components/brand/` | `HeroIllustration`, `GoaStamp` |
-| `src/components/generator/` | Format toggle, upload zone, crop stage |
+| `src/components/generator/` | Format toggle, upload, crop, frame + card previews |
 | `src/lib/store.ts` | Session-only Zustand generator state |
+| `src/lib/canvas/` | `drawFrame` + `drawCard` (1080 export canvases) |
 | `src/lib/image/` | HEIC normalize + crop-to-data-URL |
 | `src/lib/utils.ts` | `cn()` classname helper |
 | `tailwind.config.ts` | `hh.*` colors, display/mono fonts, stamp shadow |

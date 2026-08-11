@@ -70,11 +70,12 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
   setFormat: (format) =>
     set({
       format,
+      croppedImageUrl: null,
       cropSettings: {
-        ...get().cropSettings,
+        crop: { x: 0, y: 0 },
+        zoom: 1,
         aspect: ASPECT_BY_FORMAT[format],
       },
-      croppedImageUrl: null,
     }),
 
   setRawImage: (file) => {

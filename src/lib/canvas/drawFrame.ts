@@ -1,3 +1,5 @@
+import { canvasFamily, ensureCanvasFonts } from "@/lib/canvas/fonts";
+
 export const FRAME_EXPORT_SIZE = 1080;
 
 export type RingTheme = "classic" | "night" | "punch";
@@ -39,7 +41,6 @@ const TAU = Math.PI * 2;
 const ARC_TEXT = "HH GOA 2026";
 const photoCache = new Map<string, HTMLImageElement>();
 const glyphCache = new Map<string, { widths: number[]; total: number }>();
-let fontsReady: Promise<void> | null = null;
 
 async function loadPhoto(src: string): Promise<HTMLImageElement> {
   const cached = photoCache.get(src);
@@ -80,15 +81,6 @@ export function drawImageCover(
   ctx.drawImage(image, cx - dw / 2, cy - dh / 2, dw, dh);
 }
 
-function readCanvasFontFamily() {
-  if (typeof document === "undefined") {
-    return '"Space Mono", ui-monospace, monospace';
-  }
-  const fromVar = getComputedStyle(document.documentElement)
-    .getPropertyValue("--font-space-mono")
-    .trim();
-  return fromVar || getComputedStyle(document.body).fontFamily;
-}
 
 type GlyphLayout = { widths: number[]; total: number };
 
@@ -188,6 +180,7 @@ function drawPalmMark(
   ctx.restore();
 }
 
+// TECHDEBT: duplicated in drawCard.ts — extract lib/canvas/goaStamp.ts after deadline.
 function drawStampMark(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -208,7 +201,7 @@ function drawStampMark(
   ctx.beginPath();
   ctx.ellipse(0, 0, size * 0.38, size * 0.24, 0, 0, TAU);
   ctx.stroke();
-  ctx.font = `800 ${Math.round(size * 0.28)}px ${fontFamily}`;
+  ctx.font = `800 ${Math.round(size * 0.28)}px "${fontFamily}"`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("GOA", 0, 1);
@@ -253,13 +246,10 @@ export async function drawFrame(
   const frameWidth = size * 0.045;
   const innerWidth = size * 0.01;
   const photoRadius = size / 2 - frameWidth;
-  const fontFamily = readCanvasFontFamily();
-  const font = `700 ${Math.round(size * 0.028)}px ${fontFamily}`;
+  const fontFamily = canvasFamily("--font-space-mono", "Space Mono");
+  const font = `700 ${Math.round(size * 0.028)}px "${fontFamily}"`;
 
-  if (typeof document !== "undefined") {
-    fontsReady ??= document.fonts.ready.then(() => undefined);
-    await fontsReady;
-  }
+  await ensureCanvasFonts([font]);
   const photo = await loadPhoto(photoDataUrl);
 
   ctx.clearRect(0, 0, size, size);

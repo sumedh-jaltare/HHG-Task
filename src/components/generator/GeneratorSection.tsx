@@ -1,5 +1,7 @@
 "use client";
 
+import { BuilderForm } from "@/components/generator/BuilderForm";
+import { CardPreview } from "@/components/generator/CardPreview";
 import { CropStage } from "@/components/generator/CropStage";
 import { FormatToggle } from "@/components/generator/FormatToggle";
 import { FramePreview } from "@/components/generator/FramePreview";
@@ -8,6 +10,7 @@ import { useGeneratorStore } from "@/lib/store";
 
 export function GeneratorSection() {
   const rawImageUrl = useGeneratorStore((s) => s.rawImageUrl);
+  const format = useGeneratorStore((s) => s.format);
 
   return (
     <section
@@ -30,8 +33,10 @@ export function GeneratorSection() {
           <FormatToggle />
           <UploadZone />
           {rawImageUrl ? <CropStage /> : null}
+          {format === "card" ? <BuilderForm /> : null}
           <div id="canvas-output">
             <FramePreview />
+            <CardPreview />
           </div>
         </div>
       </div>

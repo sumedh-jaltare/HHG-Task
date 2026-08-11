@@ -27,12 +27,19 @@ function isShareAbort(error: unknown) {
   return error.name === "AbortError" || /abort|cancel/i.test(error.message);
 }
 
-function canShareImage(file: File) {
-  if (typeof navigator === "undefined" || typeof navigator.canShare !== "function") {
+function isMobileDevice() {
+  return (
+    typeof navigator !== "undefined" &&
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  );
+}
+
+function canNativeShare(file: File) {
+  if (!isMobileDevice() || typeof navigator.canShare !== "function") {
     return false;
   }
   try {
-    return navigator.canShare({ files: [file] });
+    return !!navigator.canShare({ files: [file] });
   } catch {
     return false;
   }
@@ -84,7 +91,7 @@ export function ExportActions({
       const blob = await canvasToBlob(canvas);
       const file = new File([blob], "hhgoa.png", { type: "image/png" });
 
-      if (canShareImage(file) && typeof navigator.share === "function") {
+      if (canNativeShare(file) && typeof navigator.share === "function") {
         try {
           await navigator.share({ files: [file], text: caption });
           return;

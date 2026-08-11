@@ -5,12 +5,13 @@ import {
   FRAME_EXPORT_SIZE,
   FRAME_PROP_KINDS,
   RING_THEMES,
-  contrastMarkColor,
+  STICKER_INKS,
   drawFrame,
+  resolveMarkColor,
   type FramePropKind,
   type RingTheme,
 } from "@/lib/canvas/drawFrame";
-import { MAX_FRAME_PROPS, useGeneratorStore } from "@/lib/store";
+import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -37,11 +38,15 @@ export function FramePreview() {
   const name = useGeneratorStore((s) => s.builderDetails.name);
   const setBuilderDetails = useGeneratorStore((s) => s.setBuilderDetails);
   const frameProps = useGeneratorStore((s) => s.frameProps);
+  const frameInk = useGeneratorStore((s) => s.frameInk);
   const addFrameProp = useGeneratorStore((s) => s.addFrameProp);
   const moveFrameProp = useGeneratorStore((s) => s.moveFrameProp);
+  const recolorFrameProp = useGeneratorStore((s) => s.recolorFrameProp);
   const removeFrameProp = useGeneratorStore((s) => s.removeFrameProp);
+  const setFrameInk = useGeneratorStore((s) => s.setFrameInk);
   const stageRef = useRef<HTMLDivElement>(null);
   const dragId = useRef<string | null>(null);
+  const [selectedPropId, setSelectedPropId] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawGen = useRef(0);
@@ -120,17 +125,22 @@ export function FramePreview() {
           {frameProps.map((prop) => (
             <div
               key={prop.id}
-              className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-start justify-end"
+              className={cn(
+                "absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-start justify-end rounded-full",
+                selectedPropId === prop.id && "ring-2 ring-hh-yellow ring-offset-2 ring-offset-hh-green-900",
+              )}
               style={{ left: `${prop.x * 100}%`, top: `${prop.y * 100}%` }}
             >
               <button
                 type="button"
                 aria-label={`Move ${PROP_LABELS[prop.kind]}`}
+                aria-pressed={selectedPropId === prop.id}
                 className="absolute inset-0 cursor-grab rounded-full active:cursor-grabbing"
                 onPointerDown={(event) => {
                   event.preventDefault();
                   event.currentTarget.setPointerCapture(event.pointerId);
                   dragId.current = prop.id;
+                  setSelectedPropId(prop.id);
                 }}
                 onPointerMove={(event) => {
                   if (!dragId.current || !stageRef.current) return;
@@ -152,7 +162,10 @@ export function FramePreview() {
                 type="button"
                 aria-label={`Remove ${PROP_LABELS[prop.kind]}`}
                 onPointerDown={(event) => event.stopPropagation()}
-                onClick={() => removeFrameProp(prop.id)}
+                onClick={() => {
+                  if (selectedPropId === prop.id) setSelectedPropId(null);
+                  removeFrameProp(prop.id);
+                }}
                 className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full bg-hh-green-900 text-[10px] font-bold text-hh-yellow"
               >
                 ×
@@ -179,30 +192,62 @@ export function FramePreview() {
 
       <fieldset className="space-y-2">
         <legend className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/55">
-          Stickers
-          {frameProps.length > 0
-            ? ` · ${frameProps.length}/${MAX_FRAME_PROPS}`
-            : ""}
+          Stickers — tap to add, drag to place, × to remove
         </legend>
         <div className="flex flex-wrap gap-2">
           {FRAME_PROP_KINDS.map((kind) => {
-            const theme = RING_THEMES[ringTheme];
-            const color = contrastMarkColor(
-              theme,
-              kind === "sun" || kind === "wave" ? "b" : "a",
-            );
-            const full = frameProps.length >= MAX_FRAME_PROPS;
+            const color = resolveMarkColor(RING_THEMES[ringTheme], frameInk);
             return (
               <button
                 key={kind}
                 type="button"
-                disabled={full}
                 onClick={() => addFrameProp(kind)}
-                className="rounded-full border-2 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-hh-cream disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-full border-2 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-hh-cream"
                 style={{ borderColor: color, color }}
               >
                 {PROP_LABELS[kind]}
               </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-2">
+        <legend className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/55">
+          {selectedPropId
+            ? "Sticker color — tap a swatch to recolor the selected badge"
+            : "Sticker color — used for the next badge you add"}
+        </legend>
+        <div
+          role="radiogroup"
+          aria-label="Sticker color"
+          className="flex flex-wrap gap-2"
+        >
+          {STICKER_INKS.map((ink) => {
+            const selected = selectedPropId
+              ? frameProps.find((prop) => prop.id === selectedPropId)?.color ===
+                ink.hex
+              : frameInk === ink.hex;
+            return (
+              <button
+                key={ink.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={ink.label}
+                title={ink.label}
+                onClick={() => {
+                  setFrameInk(ink.hex);
+                  if (selectedPropId) recolorFrameProp(selectedPropId, ink.hex);
+                }}
+                className={cn(
+                  "h-9 w-9 rounded-full border-2 transition-transform",
+                  selected
+                    ? "scale-110 border-hh-yellow"
+                    : "border-hh-cream/25 hover:border-hh-cream/60",
+                )}
+                style={{ backgroundColor: ink.hex }}
+              />
             );
           })}
         </div>

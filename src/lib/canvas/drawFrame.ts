@@ -11,7 +11,15 @@ export type FrameProp = {
   kind: FramePropKind;
   x: number;
   y: number;
+  color?: string;
 };
+
+export const STICKER_INKS = [
+  { id: "yellow", hex: "#F4D35E", label: "Sunflower" },
+  { id: "pink", hex: "#E63888", label: "Stamp" },
+  { id: "cream", hex: "#F5EFDF", label: "Cream" },
+  { id: "green", hex: "#12332A", label: "Forest" },
+] as const;
 
 export const FRAME_PROP_KINDS: FramePropKind[] = [
   "stamp",
@@ -26,11 +34,35 @@ export function contrastMarkColor(
   theme: (typeof RING_THEMES)[RingTheme],
   preferred: "a" | "b" = "a",
 ) {
+  const ground = theme.collar;
   const pick = preferred === "a" ? theme.markA : theme.markB;
-  if (pick.toLowerCase() !== theme.outer.toLowerCase()) return pick;
-  if (theme.markA.toLowerCase() !== theme.outer.toLowerCase()) return theme.markA;
-  if (theme.markB.toLowerCase() !== theme.outer.toLowerCase()) return theme.markB;
+  if (pick.toLowerCase() !== ground.toLowerCase()) return pick;
+  if (theme.markA.toLowerCase() !== ground.toLowerCase()) return theme.markA;
+  if (theme.markB.toLowerCase() !== ground.toLowerCase()) return theme.markB;
   return theme.text;
+}
+
+function inkLuma(hex: string) {
+  const n = Number.parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+export function resolveMarkColor(
+  theme: (typeof RING_THEMES)[RingTheme],
+  ink?: string,
+  preferred: "a" | "b" = "a",
+) {
+  if (
+    ink &&
+    ink.toLowerCase() !== theme.collar.toLowerCase() &&
+    Math.abs(inkLuma(ink) - inkLuma(theme.collar)) >= 36
+  ) {
+    return ink;
+  }
+  return contrastMarkColor(theme, preferred);
 }
 
 export function ringArcText(name: string) {
@@ -43,6 +75,7 @@ export function ringArcText(name: string) {
 export const RING_THEMES: Record<
   RingTheme,
   {
+    collar: string;
     outer: string;
     inner: string;
     text: string;
@@ -51,25 +84,28 @@ export const RING_THEMES: Record<
   }
 > = {
   classic: {
+    collar: "#F5EFDF",
     outer: "#F4D35E",
     inner: "#E63888",
     text: "#0D2820",
     markA: "#E63888",
-    markB: "#F4D35E",
+    markB: "#12332A",
   },
   night: {
+    collar: "#1C4735",
     outer: "#F5EFDF",
-    inner: "#2D6A4F",
-    text: "#12332A",
-    markA: "#1C4735",
-    markB: "#F4D35E",
+    inner: "#F4D35E",
+    text: "#F5EFDF",
+    markA: "#F4D35E",
+    markB: "#F5EFDF",
   },
   punch: {
+    collar: "#F5EFDF",
     outer: "#E63888",
     inner: "#F4D35E",
     text: "#0D2820",
-    markA: "#F4D35E",
-    markB: "#F5EFDF",
+    markA: "#E63888",
+    markB: "#12332A",
   },
 };
 
@@ -177,6 +213,40 @@ export function drawTextOnArc(
   ctx.restore();
 }
 
+function drawPalmFrond(
+  ctx: CanvasRenderingContext2D,
+  ox: number,
+  oy: number,
+  angle: number,
+  length: number,
+  girth: number,
+) {
+  ctx.save();
+  ctx.translate(ox, oy);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(0, 1);
+  ctx.bezierCurveTo(
+    length * 0.22,
+    -girth,
+    length * 0.62,
+    -girth * 0.25,
+    length,
+    girth * 0.55,
+  );
+  ctx.bezierCurveTo(
+    length * 0.58,
+    girth * 1.2,
+    length * 0.2,
+    girth * 0.75,
+    0,
+    1,
+  );
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawPalmMark(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -189,29 +259,40 @@ function drawPalmMark(
   ctx.translate(x, y);
   ctx.rotate(rotation);
   ctx.scale(size / 80, size / 80);
-  ctx.strokeStyle = color;
   ctx.fillStyle = color;
-  ctx.lineWidth = 7;
+  ctx.strokeStyle = color;
   ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
   ctx.beginPath();
-  ctx.moveTo(0, 36);
-  ctx.quadraticCurveTo(-6, 8, 3, -18);
-  ctx.stroke();
-  const fronds: [number, number][] = [
-    [-28, -30],
-    [2, -46],
-    [30, -28],
-    [-22, -6],
-    [24, -4],
-    [8, 8],
+  ctx.moveTo(-6, 38);
+  ctx.quadraticCurveTo(-9, 16, -3, -2);
+  ctx.quadraticCurveTo(2, -16, 1, -22);
+  ctx.lineTo(7, -22);
+  ctx.quadraticCurveTo(9, -14, 5, 0);
+  ctx.quadraticCurveTo(0, 18, 6, 38);
+  ctx.closePath();
+  ctx.fill();
+
+  const crownX = 4;
+  const crownY = -20;
+  const fronds: [number, number, number][] = [
+    [-2.85, 30, 7],
+    [-2.35, 36, 8],
+    [-1.85, 40, 9],
+    [-1.35, 42, 9],
+    [-0.85, 38, 8],
+    [-0.35, 34, 8],
+    [0.15, 28, 7],
   ];
-  for (const [fx, fy] of fronds) {
-    ctx.beginPath();
-    ctx.moveTo(3, -16);
-    ctx.quadraticCurveTo((fx + 3) * 0.45, (fy - 16) * 0.4 - 6, fx, fy);
-    ctx.quadraticCurveTo((fx + 3) * 0.55, (fy - 16) * 0.55, 3, -16);
-    ctx.fill();
+  for (const [angle, length, girth] of fronds) {
+    drawPalmFrond(ctx, crownX, crownY, angle, length, girth);
   }
+
+  ctx.beginPath();
+  ctx.arc(crownX - 4, crownY + 5, 3.2, 0, TAU);
+  ctx.arc(crownX + 1, crownY + 7, 2.8, 0, TAU);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -354,16 +435,24 @@ export async function drawFrame(
   const theme = RING_THEMES[ringTheme];
   const cx = size / 2;
   const cy = size / 2;
-  const frameWidth = size * 0.045;
-  const innerWidth = size * 0.01;
-  const photoRadius = size / 2 - frameWidth;
+  const pad = size * 0.022;
+  const outerR = size / 2 - pad;
+  const innerR = outerR - size * 0.062;
+  const photoRadius = innerR - size * 0.01;
   const fontFamily = canvasFamily("--font-space-mono", "Space Mono");
-  const font = `700 ${Math.round(size * 0.028)}px "${fontFamily}"`;
+  const font = `700 ${Math.round(size * 0.026)}px "${fontFamily}"`;
 
   await ensureCanvasFonts([font]);
   const photo = await loadPhoto(photoDataUrl);
 
   ctx.clearRect(0, 0, size, size);
+
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.22)";
+  ctx.beginPath();
+  ctx.arc(cx + size * 0.006, cy + size * 0.008, outerR, 0, TAU);
+  ctx.fill();
+  ctx.restore();
 
   ctx.save();
   ctx.beginPath();
@@ -373,23 +462,37 @@ export async function drawFrame(
   ctx.restore();
 
   ctx.save();
-  ctx.lineCap = "butt";
   ctx.beginPath();
+  ctx.arc(cx, cy, outerR, 0, TAU);
+  ctx.arc(cx, cy, innerR, 0, TAU, true);
+  ctx.fillStyle = theme.collar;
+  ctx.fill();
+
+  ctx.lineCap = "butt";
   ctx.strokeStyle = theme.outer;
-  ctx.lineWidth = frameWidth;
-  ctx.arc(cx, cy, photoRadius, 0, TAU);
+  ctx.lineWidth = Math.max(4, size * 0.01);
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR - ctx.lineWidth / 2, 0, TAU);
   ctx.stroke();
 
-  ctx.beginPath();
   ctx.strokeStyle = theme.inner;
-  ctx.lineWidth = innerWidth;
-  ctx.arc(cx, cy, photoRadius - frameWidth * 0.28, 0, TAU);
+  ctx.lineWidth = Math.max(3, size * 0.007);
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR + ctx.lineWidth / 2, 0, TAU);
+  ctx.stroke();
+
+  ctx.setLineDash([size * 0.012, size * 0.016]);
+  ctx.strokeStyle = theme.outer;
+  ctx.globalAlpha = 0.55;
+  ctx.lineWidth = Math.max(1.5, size * 0.0035);
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR + size * 0.01, 0, TAU);
   ctx.stroke();
   ctx.restore();
 
   const stampSize = size * 0.12;
   const propSize = size * 0.11;
-  const markRadius = photoRadius;
+  const markRadius = (innerR + outerR) / 2;
   const stampAngle = (150 * Math.PI) / 180;
   drawStampMark(
     ctx,
@@ -408,14 +511,14 @@ export async function drawFrame(
       prop.x * size,
       prop.y * size,
       propSize,
-      contrastMarkColor(theme, preferred),
+      resolveMarkColor(theme, prop.color, preferred),
       fontFamily,
     );
   }
 
   const arc = ringArcText(extras.name ?? "");
   const layout = measureGlyphs(ctx, arc, font);
-  const textRadius = photoRadius;
+  const textRadius = (innerR + outerR) / 2;
   const startAngle = Math.PI / 2 + layout.total / textRadius / 2;
 
   ctx.fillStyle = theme.text;

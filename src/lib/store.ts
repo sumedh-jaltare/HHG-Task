@@ -4,18 +4,40 @@ import {
   ASPECT_BY_FORMAT,
   type GeneratorFormat,
 } from "@/lib/image/aspect";
-import type { FrameProp, FramePropKind, RingTheme } from "@/lib/canvas/drawFrame";
+import {
+  STICKER_INKS,
+  type FrameProp,
+  type FramePropKind,
+  type RingTheme,
+} from "@/lib/canvas/drawFrame";
 import { create } from "zustand";
 
 export type { FrameProp, FramePropKind, GeneratorFormat, RingTheme };
 
-export const MAX_FRAME_PROPS = 3;
+const RING_PROP_RADIUS = 0.455;
 
-const PROP_SLOTS: Array<{ x: number; y: number }> = [
-  { x: 0.5 + Math.cos(Math.PI / 6) * 0.455, y: 0.5 + Math.sin(Math.PI / 6) * 0.455 },
-  { x: 0.5 + Math.cos((210 * Math.PI) / 180) * 0.455, y: 0.5 + Math.sin((210 * Math.PI) / 180) * 0.455 },
-  { x: 0.5 + Math.cos(-Math.PI / 2) * 0.455, y: 0.5 + Math.sin(-Math.PI / 2) * 0.455 },
-];
+function slot(
+  kind: FramePropKind,
+  angleDeg: number,
+  color: string,
+): FrameProp {
+  const angle = (angleDeg * Math.PI) / 180;
+  return {
+    id: `starter-${kind}`,
+    kind,
+    color,
+    x: 0.5 + Math.cos(angle) * RING_PROP_RADIUS,
+    y: 0.5 + Math.sin(angle) * RING_PROP_RADIUS,
+  };
+}
+
+export function defaultFrameProps(): FrameProp[] {
+  return [
+    slot("palm", -90, "#E63888"),
+    slot("sun", 30, "#F4D35E"),
+    slot("wave", 210, "#12332A"),
+  ];
+}
 
 export type CropSettings = {
   crop: { x: number; y: number };
@@ -39,6 +61,7 @@ type GeneratorState = {
   builderDetails: BuilderDetails;
   ringTheme: RingTheme;
   frameProps: FrameProp[];
+  frameInk: string;
   setFormat: (format: GeneratorFormat) => void;
   setRawImage: (file: File) => void;
   setCroppedImageUrl: (url: string | null) => void;
@@ -47,7 +70,9 @@ type GeneratorState = {
   setRingTheme: (theme: RingTheme) => void;
   addFrameProp: (kind: FramePropKind) => void;
   moveFrameProp: (id: string, x: number, y: number) => void;
+  recolorFrameProp: (id: string, color: string) => void;
   removeFrameProp: (id: string) => void;
+  setFrameInk: (color: string) => void;
   reset: () => void;
 };
 
@@ -78,13 +103,14 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
   cropSettings: defaultCropSettings,
   builderDetails: defaultBuilderDetails,
   ringTheme: "classic",
-  frameProps: [],
+  frameProps: defaultFrameProps(),
+  frameInk: STICKER_INKS[1].hex,
 
   setFormat: (format) =>
     set({
       format,
       croppedImageUrl: null,
-      frameProps: [],
+      frameProps: format === "frame" ? defaultFrameProps() : [],
       cropSettings: {
         crop: { x: 0, y: 0 },
         zoom: 1,
@@ -122,19 +148,16 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
 
   addFrameProp: (kind) => {
     const current = get().frameProps;
-    if (current.length >= MAX_FRAME_PROPS) return;
-    const taken = current.map((prop) => `${prop.x.toFixed(2)}:${prop.y.toFixed(2)}`);
-    const slot =
-      PROP_SLOTS.find((s) => !taken.includes(`${s.x.toFixed(2)}:${s.y.toFixed(2)}`)) ??
-      PROP_SLOTS[current.length % PROP_SLOTS.length];
+    const angle = -Math.PI / 2 + (current.length + 1) * 0.85;
     set({
       frameProps: [
         ...current,
         {
           id: crypto.randomUUID(),
           kind,
-          x: slot.x,
-          y: slot.y,
+          color: get().frameInk,
+          x: 0.5 + Math.cos(angle) * RING_PROP_RADIUS,
+          y: 0.5 + Math.sin(angle) * RING_PROP_RADIUS,
         },
       ],
     });
@@ -153,10 +176,19 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
       ),
     }),
 
+  recolorFrameProp: (id, color) =>
+    set({
+      frameProps: get().frameProps.map((prop) =>
+        prop.id === id ? { ...prop, color } : prop,
+      ),
+    }),
+
   removeFrameProp: (id) =>
     set({
       frameProps: get().frameProps.filter((prop) => prop.id !== id),
     }),
+
+  setFrameInk: (frameInk) => set({ frameInk }),
 
   reset: () => {
     revokeIfObjectUrl(get().rawImageUrl);
@@ -168,7 +200,8 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
       cropSettings: defaultCropSettings,
       builderDetails: defaultBuilderDetails,
       ringTheme: "classic",
-      frameProps: [],
+      frameProps: defaultFrameProps(),
+      frameInk: STICKER_INKS[1].hex,
     });
   },
 }));

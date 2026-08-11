@@ -3,13 +3,25 @@
 import { ExportActions } from "@/components/generator/ExportActions";
 import {
   FRAME_EXPORT_SIZE,
+  FRAME_PROP_KINDS,
+  RING_THEMES,
+  contrastMarkColor,
   drawFrame,
+  type FramePropKind,
   type RingTheme,
 } from "@/lib/canvas/drawFrame";
-import { useGeneratorStore } from "@/lib/store";
+import { MAX_FRAME_PROPS, useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+
+const PROP_LABELS: Record<FramePropKind, string> = {
+  stamp: "GOA",
+  palm: "Palm",
+  sun: "Sun",
+  year: "2026",
+  wave: "Wave",
+};
 
 const THEMES: { value: RingTheme; label: string }[] = [
   { value: "classic", label: "Classic" },
@@ -22,6 +34,14 @@ export function FramePreview() {
   const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
   const ringTheme = useGeneratorStore((s) => s.ringTheme);
   const setRingTheme = useGeneratorStore((s) => s.setRingTheme);
+  const name = useGeneratorStore((s) => s.builderDetails.name);
+  const setBuilderDetails = useGeneratorStore((s) => s.setBuilderDetails);
+  const frameProps = useGeneratorStore((s) => s.frameProps);
+  const addFrameProp = useGeneratorStore((s) => s.addFrameProp);
+  const moveFrameProp = useGeneratorStore((s) => s.moveFrameProp);
+  const removeFrameProp = useGeneratorStore((s) => s.removeFrameProp);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const dragId = useRef<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawGen = useRef(0);
@@ -50,7 +70,10 @@ export function FramePreview() {
         if (!offCtx) {
           throw new Error("Couldn't open a drawing surface for this frame.");
         }
-        await drawFrame(offCtx, croppedImageUrl, FRAME_EXPORT_SIZE, ringTheme);
+        await drawFrame(offCtx, croppedImageUrl, FRAME_EXPORT_SIZE, ringTheme, {
+          name,
+          placements: frameProps,
+        });
         if (drawGen.current !== gen) return;
         ctx.clearRect(0, 0, FRAME_EXPORT_SIZE, FRAME_EXPORT_SIZE);
         ctx.drawImage(offscreen, 0, 0);
@@ -64,7 +87,7 @@ export function FramePreview() {
         );
       }
     })();
-  }, [format, croppedImageUrl, ringTheme]);
+  }, [format, croppedImageUrl, ringTheme, name, frameProps]);
 
   if (drawError) throw drawError;
 
@@ -93,7 +116,97 @@ export function FramePreview() {
             ready ? "opacity-100" : "opacity-0",
           )}
         />
+        <div ref={stageRef} className="absolute inset-0 touch-none">
+          {frameProps.map((prop) => (
+            <div
+              key={prop.id}
+              className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-start justify-end"
+              style={{ left: `${prop.x * 100}%`, top: `${prop.y * 100}%` }}
+            >
+              <button
+                type="button"
+                aria-label={`Move ${PROP_LABELS[prop.kind]}`}
+                className="absolute inset-0 cursor-grab rounded-full active:cursor-grabbing"
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  dragId.current = prop.id;
+                }}
+                onPointerMove={(event) => {
+                  if (!dragId.current || !stageRef.current) return;
+                  const box = stageRef.current.getBoundingClientRect();
+                  moveFrameProp(
+                    dragId.current,
+                    (event.clientX - box.left) / box.width,
+                    (event.clientY - box.top) / box.height,
+                  );
+                }}
+                onPointerUp={() => {
+                  dragId.current = null;
+                }}
+                onPointerCancel={() => {
+                  dragId.current = null;
+                }}
+              />
+              <button
+                type="button"
+                aria-label={`Remove ${PROP_LABELS[prop.kind]}`}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={() => removeFrameProp(prop.id)}
+                className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full bg-hh-green-900 text-[10px] font-bold text-hh-yellow"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
+
+      <label htmlFor="frame-name" className="block space-y-1.5">
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/55">
+          Name on the ring
+        </span>
+        <input
+          id="frame-name"
+          type="text"
+          value={name}
+          maxLength={28}
+          placeholder="Optional — shows on the ring"
+          onChange={(event) => setBuilderDetails({ name: event.target.value })}
+          className="w-full rounded-xl border-2 border-hh-cream/20 bg-hh-green-900 px-3 py-2.5 font-mono text-sm text-hh-cream outline-none placeholder:text-hh-cream/35 focus:border-hh-yellow"
+        />
+      </label>
+
+      <fieldset className="space-y-2">
+        <legend className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/55">
+          Stickers
+          {frameProps.length > 0
+            ? ` · ${frameProps.length}/${MAX_FRAME_PROPS}`
+            : ""}
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {FRAME_PROP_KINDS.map((kind) => {
+            const theme = RING_THEMES[ringTheme];
+            const color = contrastMarkColor(
+              theme,
+              kind === "sun" || kind === "wave" ? "b" : "a",
+            );
+            const full = frameProps.length >= MAX_FRAME_PROPS;
+            return (
+              <button
+                key={kind}
+                type="button"
+                disabled={full}
+                onClick={() => addFrameProp(kind)}
+                className="rounded-full border-2 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-hh-cream disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ borderColor: color, color }}
+              >
+                {PROP_LABELS[kind]}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <fieldset className="space-y-2">
         <legend className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/55">

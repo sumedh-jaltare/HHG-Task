@@ -4,8 +4,8 @@ import { canvasToBlob, downloadBlob } from "@/lib/canvas/exportCanvas";
 import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Download, Loader2, Share2 } from "lucide-react";
-import { useState, type RefObject } from "react";
+import { Check, Copy, Download, Loader2, Share2 } from "lucide-react";
+import { useEffect, useState, type RefObject } from "react";
 
 type ExportActionsProps = {
   canvasRef: RefObject<HTMLCanvasElement>;
@@ -34,6 +34,14 @@ function isMobileDevice() {
   );
 }
 
+function canCopyImage() {
+  return (
+    typeof navigator !== "undefined" &&
+    typeof navigator.clipboard?.write === "function" &&
+    typeof ClipboardItem !== "undefined"
+  );
+}
+
 function canNativeShare(file: File) {
   if (!isMobileDevice() || typeof navigator.canShare !== "function") {
     return false;
@@ -54,11 +62,18 @@ export function ExportActions({
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [canCopy, setCanCopy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isFrame = filenamePrefix === "hh-goa-frame";
   const caption = isFrame ? FRAME_CAPTION : builderCaption(title);
-  const busy = downloading || sharing;
+  const busy = downloading || sharing || copying;
+
+  useEffect(() => {
+    setCanCopy(canCopyImage());
+  }, []);
 
   const handleDownload = async () => {
     const canvas = canvasRef.current;
@@ -138,6 +153,30 @@ export function ExportActions({
     }
   };
 
+  const handleCopy = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas || busy || !canCopyImage()) return;
+    setError(null);
+    setCopied(false);
+    setCopying(true);
+    try {
+      const blob = await canvasToBlob(canvas);
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob }),
+      ]);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Couldn't copy that graphic. Download it instead.",
+      );
+    } finally {
+      setCopying(false);
+    }
+  };
+
   return (
     <div className="space-y-3 pb-[env(safe-area-inset-bottom)]">
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -186,6 +225,34 @@ export function ExportActions({
             )}
           </AnimatePresence>
         </button>
+
+        {canCopy ? (
+          <button
+            type="button"
+            onClick={() => void handleCopy()}
+            disabled={!ready || busy}
+            className={cn(
+              "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-hh-cream bg-transparent px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-[0.18em] text-hh-cream shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-cream hover:text-hh-green-900 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-cream sm:flex-1",
+            )}
+          >
+            {copying ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                Copying…
+              </>
+            ) : copied ? (
+              <>
+                <Check className="h-4 w-4" aria-hidden />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" aria-hidden />
+                Copy Image
+              </>
+            )}
+          </button>
+        ) : null}
 
         <button
           type="button"

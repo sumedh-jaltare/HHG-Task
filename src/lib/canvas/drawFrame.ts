@@ -4,6 +4,42 @@ export const FRAME_EXPORT_SIZE = 1080;
 
 export type RingTheme = "classic" | "night" | "punch";
 
+export type FramePropKind = "stamp" | "palm" | "sun" | "year" | "wave";
+
+export type FrameProp = {
+  id: string;
+  kind: FramePropKind;
+  x: number;
+  y: number;
+};
+
+export const FRAME_PROP_KINDS: FramePropKind[] = [
+  "stamp",
+  "palm",
+  "sun",
+  "year",
+  "wave",
+];
+
+/** Marks sit on the outer ring — never paint them the same token as the ring. */
+export function contrastMarkColor(
+  theme: (typeof RING_THEMES)[RingTheme],
+  preferred: "a" | "b" = "a",
+) {
+  const pick = preferred === "a" ? theme.markA : theme.markB;
+  if (pick.toLowerCase() !== theme.outer.toLowerCase()) return pick;
+  if (theme.markA.toLowerCase() !== theme.outer.toLowerCase()) return theme.markA;
+  if (theme.markB.toLowerCase() !== theme.outer.toLowerCase()) return theme.markB;
+  return theme.text;
+}
+
+export function ringArcText(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return "HH GOA 2026";
+  const short = trimmed.length > 12 ? `${trimmed.slice(0, 11)}…` : trimmed;
+  return `HH GOA · ${short.toUpperCase()}`;
+}
+
 export const RING_THEMES: Record<
   RingTheme,
   {
@@ -38,7 +74,6 @@ export const RING_THEMES: Record<
 };
 
 const TAU = Math.PI * 2;
-const ARC_TEXT = "HH GOA 2026";
 const photoCache = new Map<string, HTMLImageElement>();
 const glyphCache = new Map<string, { widths: number[]; total: number }>();
 
@@ -234,11 +269,87 @@ function drawSunMark(
   ctx.restore();
 }
 
+function drawYearMark(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  fontFamily: string,
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate((-6 * Math.PI) / 180);
+  ctx.fillStyle = color;
+  ctx.font = `800 ${Math.round(size * 0.34)}px "${fontFamily}"`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("2026", 0, 0);
+  ctx.restore();
+}
+
+function drawWaveMark(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2.5, size * 0.08);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (const offset of [-size * 0.08, size * 0.1]) {
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.42, offset);
+    ctx.quadraticCurveTo(-size * 0.2, offset - size * 0.2, 0, offset);
+    ctx.quadraticCurveTo(size * 0.2, offset + size * 0.2, size * 0.42, offset);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawKindMark(
+  ctx: CanvasRenderingContext2D,
+  kind: FramePropKind,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  fontFamily: string,
+) {
+  if (kind === "palm") {
+    drawPalmMark(ctx, x, y, size, color, -0.2);
+    return;
+  }
+  if (kind === "stamp") {
+    drawStampMark(ctx, x, y, size, color, fontFamily);
+    return;
+  }
+  if (kind === "sun") {
+    drawSunMark(ctx, x, y, size, color);
+    return;
+  }
+  if (kind === "year") {
+    drawYearMark(ctx, x, y, size, color, fontFamily);
+    return;
+  }
+  drawWaveMark(ctx, x, y, size, color);
+}
+
+export type DrawFrameExtras = {
+  name?: string;
+  placements?: FrameProp[];
+};
+
 export async function drawFrame(
   ctx: CanvasRenderingContext2D,
   photoDataUrl: string,
   size: number,
   ringTheme: RingTheme = "classic",
+  extras: DrawFrameExtras = {},
 ): Promise<void> {
   const theme = RING_THEMES[ringTheme];
   const cx = size / 2;
@@ -276,32 +387,37 @@ export async function drawFrame(
   ctx.stroke();
   ctx.restore();
 
-  const markSize = size * 0.072;
+  const stampSize = size * 0.12;
+  const propSize = size * 0.11;
   const markRadius = photoRadius;
-  const marks: Array<{ angle: number; kind: "palm" | "stamp" | "sun" }> = [
-    { angle: -Math.PI / 2, kind: "palm" },
-    { angle: (150 * Math.PI) / 180, kind: "stamp" },
-    { angle: (30 * Math.PI) / 180, kind: "sun" },
-    { angle: (210 * Math.PI) / 180, kind: "palm" },
-  ];
+  const stampAngle = (150 * Math.PI) / 180;
+  drawStampMark(
+    ctx,
+    cx + Math.cos(stampAngle) * markRadius,
+    cy + Math.sin(stampAngle) * markRadius,
+    stampSize,
+    contrastMarkColor(theme, "a"),
+    fontFamily,
+  );
 
-  for (const mark of marks) {
-    const x = cx + Math.cos(mark.angle) * markRadius;
-    const y = cy + Math.sin(mark.angle) * markRadius;
-    if (mark.kind === "palm") {
-      drawPalmMark(ctx, x, y, markSize, theme.markA, mark.angle + Math.PI / 2);
-    } else if (mark.kind === "stamp") {
-      drawStampMark(ctx, x, y, markSize * 0.95, theme.markA, fontFamily);
-    } else {
-      drawSunMark(ctx, x, y, markSize * 0.85, theme.markB);
-    }
+  for (const prop of extras.placements ?? []) {
+    const preferred = prop.kind === "sun" || prop.kind === "wave" ? "b" : "a";
+    drawKindMark(
+      ctx,
+      prop.kind,
+      prop.x * size,
+      prop.y * size,
+      propSize,
+      contrastMarkColor(theme, preferred),
+      fontFamily,
+    );
   }
 
-  const layout = measureGlyphs(ctx, ARC_TEXT, font);
+  const arc = ringArcText(extras.name ?? "");
+  const layout = measureGlyphs(ctx, arc, font);
   const textRadius = photoRadius;
-  const totalAngle = layout.total / textRadius;
-  const startAngle = Math.PI / 2 + totalAngle / 2;
+  const startAngle = Math.PI / 2 + layout.total / textRadius / 2;
 
   ctx.fillStyle = theme.text;
-  drawTextOnArc(ctx, ARC_TEXT, cx, cy, textRadius, startAngle, font);
+  drawTextOnArc(ctx, arc, cx, cy, textRadius, startAngle, font);
 }

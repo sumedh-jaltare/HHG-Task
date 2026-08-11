@@ -43,3 +43,9 @@ next-env.d.ts
 
 # local tooling / screenshot dumps
 .tmp-shots
+
+# personal camera-roll test photos dropped in the repo root
+/*.HEIC
+/*.heic
+/*.HEIF
+/*.heif

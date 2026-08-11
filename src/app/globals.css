@@ -30,3 +30,34 @@ body {
     font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 1;
   }
 }
+
+.crop-zoom {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: #1c4735;
+  outline: none;
+}
+
+.crop-zoom::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #f4d35e;
+  border: 2px solid #0d2820;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.crop-zoom::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #f4d35e;
+  border: 2px solid #0d2820;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}

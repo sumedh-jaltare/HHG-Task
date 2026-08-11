@@ -1,5 +1,7 @@
 import { GoaStamp } from "@/components/brand/GoaStamp";
 import { HeroIllustration } from "@/components/brand/HeroIllustration";
+import { GeneratorSection } from "@/components/generator/GeneratorSection";
+import { SetFormatLink } from "@/components/generator/SetFormatLink";
 import { cn } from "@/lib/utils";
 
 const ctaClass =
@@ -53,24 +55,23 @@ export default function Home() {
           </p>
 
           <div className="mt-10 flex w-full max-w-md flex-col items-stretch gap-3 sm:mt-12 sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
-            <a href="#generator" className={cn(ctaClass, "bg-hh-yellow")}>
+            <SetFormatLink
+              format="frame"
+              className={cn(ctaClass, "bg-hh-yellow")}
+            >
               Make my PFP Frame
-            </a>
-            <a href="#generator" className={cn(ctaClass, "bg-hh-cream")}>
+            </SetFormatLink>
+            <SetFormatLink
+              format="card"
+              className={cn(ctaClass, "bg-hh-cream")}
+            >
               Make my Builder ID
-            </a>
+            </SetFormatLink>
           </div>
         </div>
       </section>
 
-      <section
-        id="generator"
-        className="relative z-10 min-h-[40vh] border-t-2 border-hh-yellow/15 bg-hh-green-900 px-4 py-24"
-      >
-        <p className="text-center font-mono text-[10px] uppercase tracking-[0.28em] text-hh-cream/35">
-          Generator arrives next
-        </p>
-      </section>
+      <GeneratorSection />
 
       <div id="check-hype" className="sr-only" />
     </div>

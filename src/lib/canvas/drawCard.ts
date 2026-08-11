@@ -77,22 +77,96 @@ function fillTextSpaced(
   ctx.textAlign = prevAlign;
 }
 
-function fitNameSize(
+const HH = {
+  green900: "#0D2820",
+  green700: "#12332A",
+  green500: "#1C4735",
+  green300: "#2D6A4F",
+  yellow: "#F4D35E",
+  pink: "#E63888",
+  cream: "#F5EFDF",
+} as const;
+
+function layoutName(
   ctx: CanvasRenderingContext2D,
   text: string,
   family: string,
   maxWidth: number,
   maxSize: number,
   minSize: number,
-) {
+): { lines: string[]; size: number } {
+  ctx.font = `900 ${maxSize}px "${family}"`;
+  if (ctx.measureText(text).width <= maxWidth) {
+    return { lines: [text], size: maxSize };
+  }
+
+  const parts = text.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    let split = 1;
+    let best = Infinity;
+    for (let i = 1; i < parts.length; i += 1) {
+      const left = parts.slice(0, i).join(" ");
+      const right = parts.slice(i).join(" ");
+      const score = Math.max(
+        ctx.measureText(left).width,
+        ctx.measureText(right).width,
+      );
+      if (score < best) {
+        best = score;
+        split = i;
+      }
+    }
+    const lines = [
+      parts.slice(0, split).join(" "),
+      parts.slice(split).join(" "),
+    ];
+    let size = maxSize;
+    while (size > minSize) {
+      ctx.font = `900 ${size}px "${family}"`;
+      if (lines.every((line) => ctx.measureText(line).width <= maxWidth)) {
+        return { lines, size };
+      }
+      size -= 2;
+    }
+    return { lines, size: minSize };
+  }
+
   let size = maxSize;
   while (size > minSize) {
     ctx.font = `900 ${size}px "${family}"`;
-    if (ctx.measureText(text).width <= maxWidth) return size;
+    if (ctx.measureText(text).width <= maxWidth) {
+      return { lines: [text], size };
+    }
     size -= 2;
   }
-  ctx.font = `900 ${minSize}px "${family}"`;
-  return minSize;
+  return { lines: [text], size: minSize };
+}
+
+function drawPanelGrid(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
+  ctx.save();
+  roundedRect(ctx, x, y, w, h, r);
+  ctx.clip();
+  const step = Math.max(22, w * 0.038);
+  ctx.strokeStyle = "rgba(45, 106, 79, 0.16)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let gx = x + step; gx < x + w; gx += step) {
+    ctx.moveTo(gx + 0.5, y);
+    ctx.lineTo(gx + 0.5, y + h);
+  }
+  for (let gy = y + step; gy < y + h; gy += step) {
+    ctx.moveTo(x, gy + 0.5);
+    ctx.lineTo(x + w, gy + 0.5);
+  }
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawCoverRect(
@@ -133,7 +207,7 @@ function drawSilhouette(
 ) {
   const cx = x + w / 2;
   const headR = w * 0.16;
-  ctx.fillStyle = "#2D6A4F";
+  ctx.fillStyle = HH.green300;
   ctx.beginPath();
   ctx.arc(cx, y + h * 0.38, headR, 0, TAU);
   ctx.fill();
@@ -184,7 +258,7 @@ export async function drawCard(
   const monoFamily = canvasFamily("--font-space-mono", "Space Mono");
 
   await ensureCanvasFonts([
-    `900 64px "${displayFamily}"`,
+    `900 72px "${displayFamily}"`,
     `700 28px "${monoFamily}"`,
     `400 22px "${monoFamily}"`,
   ]);
@@ -195,148 +269,222 @@ export async function drawCard(
   const handle = details.handle.trim().replace(/^@+/, "");
 
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "#12332A";
+  ctx.fillStyle = HH.green700;
   ctx.fillRect(0, 0, width, height);
 
-  const margin = width * 0.055;
+  const margin = width * 0.046;
   const panelX = margin;
-  const panelY = margin * 1.15;
+  const panelY = margin * 1.08;
   const panelW = width - margin * 2;
-  const panelH = height - margin * 2.1;
-  const panelR = width * 0.04;
+  const panelH = height - margin * 2.05;
+  const panelR = width * 0.034;
 
-  ctx.fillStyle = "#F5EFDF";
+  ctx.fillStyle = HH.cream;
   roundedRect(ctx, panelX, panelY, panelW, panelH, panelR);
   ctx.fill();
+  drawPanelGrid(ctx, panelX, panelY, panelW, panelH, panelR);
+
+  ctx.strokeStyle = HH.yellow;
+  ctx.lineWidth = Math.max(2, width * 0.0035);
+  roundedRect(
+    ctx,
+    panelX + width * 0.012,
+    panelY + width * 0.012,
+    panelW - width * 0.024,
+    panelH - width * 0.024,
+    panelR * 0.78,
+  );
+  ctx.stroke();
 
   const pinColor = hashPinColor(details.name.trim());
   const pinX = width / 2;
-  const pinY = panelY + width * 0.018;
+  const pinY = panelY + width * 0.016;
   ctx.beginPath();
   ctx.fillStyle = "rgba(0,0,0,0.22)";
-  ctx.arc(pinX + 3, pinY + 5, width * 0.018, 0, TAU);
+  ctx.arc(pinX + 3, pinY + 5, width * 0.016, 0, TAU);
   ctx.fill();
   ctx.beginPath();
   ctx.fillStyle = pinColor;
-  ctx.arc(pinX, pinY, width * 0.02, 0, TAU);
+  ctx.arc(pinX, pinY, width * 0.018, 0, TAU);
   ctx.fill();
   ctx.beginPath();
   ctx.fillStyle = "rgba(255,255,255,0.35)";
-  ctx.arc(pinX - width * 0.006, pinY - width * 0.006, width * 0.006, 0, TAU);
+  ctx.arc(pinX - width * 0.005, pinY - width * 0.005, width * 0.005, 0, TAU);
   ctx.fill();
 
-  ctx.fillStyle = "#12332A";
-  ctx.font = `700 ${Math.round(width * 0.022)}px "${monoFamily}"`;
+  const headerY = panelY + width * 0.068;
+  ctx.fillStyle = HH.green700;
+  ctx.font = `700 ${Math.round(width * 0.018)}px "${monoFamily}"`;
   ctx.textBaseline = "middle";
   fillTextSpaced(
     ctx,
     "HH GOA · BUILDER ID · 2026",
     width / 2,
-    panelY + width * 0.07,
-    width * 0.006,
-  );
-
-  const photoSize = width * 0.55;
-  const photoX = (width - photoSize) / 2;
-  const photoY = panelY + width * 0.12;
-  const photoR = photoSize * 0.08;
-  const border = 8;
-
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  roundedRect(ctx, photoX + 6, photoY + 6, photoSize, photoSize, photoR);
-  ctx.fill();
-
-  ctx.fillStyle = "#E63888";
-  roundedRect(ctx, photoX - border / 2, photoY - border / 2, photoSize + border, photoSize + border, photoR + 2);
-  ctx.fill();
-
-  ctx.save();
-  roundedRect(ctx, photoX, photoY, photoSize, photoSize, photoR);
-  ctx.clip();
-  ctx.fillStyle = "#1C4735";
-  ctx.fillRect(photoX, photoY, photoSize, photoSize);
-
-  if (photoDataUrl) {
-    try {
-      const photo = await loadPhoto(photoDataUrl);
-      drawCoverRect(ctx, photo, photoX, photoY, photoSize, photoSize);
-    } catch {
-      drawSilhouette(ctx, photoX, photoY, photoSize, photoSize);
-    }
-  } else {
-    drawSilhouette(ctx, photoX, photoY, photoSize, photoSize);
-  }
-  ctx.restore();
-
-  const textMax = width * 0.85;
-  const nameY = photoY + photoSize + width * 0.075;
-  const nameSize = fitNameSize(
-    ctx,
-    name,
-    displayFamily,
-    textMax,
-    width * 0.074,
-    width * 0.032,
-  );
-  ctx.fillStyle = "#0D2820";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `900 ${nameSize}px "${displayFamily}"`;
-  ctx.fillText(name, width / 2, nameY);
-
-  let cursorY = nameY + nameSize * 0.85;
-  if (role) {
-    ctx.fillStyle = "#1C4735";
-    ctx.font = `700 ${Math.round(width * 0.024)}px "${monoFamily}"`;
-    fillTextSpaced(ctx, role, width / 2, cursorY, width * 0.007);
-    cursorY += width * 0.055;
-  } else {
-    cursorY += width * 0.03;
-  }
-
-  let titleSize = Math.round(width * 0.024);
-  ctx.font = `700 ${titleSize}px "${monoFamily}"`;
-  while (titleSize > width * 0.016 && ctx.measureText(title).width > textMax * 0.82) {
-    titleSize -= 1;
-    ctx.font = `700 ${titleSize}px "${monoFamily}"`;
-  }
-  const titleWidth = Math.min(
-    textMax,
-    ctx.measureText(title).width + width * 0.07,
-  );
-  const titleH = width * 0.055;
-  const titleX = (width - titleWidth) / 2;
-  ctx.fillStyle = "#E63888";
-  roundedRect(ctx, titleX, cursorY - titleH / 2, titleWidth, titleH, titleH / 2);
-  ctx.fill();
-  ctx.fillStyle = "#F5EFDF";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(title, width / 2, cursorY);
-
-  const footerY = panelY + panelH - width * 0.055;
-  ctx.fillStyle = "#12332A";
-  ctx.font = `700 ${Math.round(width * 0.02)}px "${monoFamily}"`;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  if (handle) {
-    ctx.fillText(`@${handle}`, panelX + width * 0.045, footerY - width * 0.042);
-  }
-  ctx.font = `700 ${Math.round(width * 0.018)}px "${monoFamily}"`;
-  fillTextSpaced(
-    ctx,
-    "GOA, INDIA · 28–31 OCT 2026",
-    width / 2 - width * 0.04,
-    footerY,
-    width * 0.004,
+    headerY,
+    width * 0.005,
   );
 
   drawStampMark(
     ctx,
-    panelX + panelW - width * 0.08,
-    footerY,
-    width * 0.1,
-    "#E63888",
+    panelX + panelW - width * 0.078,
+    headerY,
+    width * 0.092,
+    HH.pink,
     monoFamily,
+  );
+
+  const photoX = panelX + width * 0.048;
+  const photoW = panelW - width * 0.096;
+  const photoY = panelY + width * 0.108;
+  const photoH = height * 0.52;
+  const photoR = width * 0.028;
+  const border = Math.max(6, width * 0.008);
+
+  ctx.fillStyle = "rgba(13,40,32,0.22)";
+  roundedRect(ctx, photoX + 7, photoY + 8, photoW, photoH, photoR);
+  ctx.fill();
+
+  ctx.fillStyle = HH.pink;
+  roundedRect(
+    ctx,
+    photoX - border / 2,
+    photoY - border / 2,
+    photoW + border,
+    photoH + border,
+    photoR + 2,
+  );
+  ctx.fill();
+
+  ctx.save();
+  roundedRect(ctx, photoX, photoY, photoW, photoH, photoR);
+  ctx.clip();
+  ctx.fillStyle = HH.green500;
+  ctx.fillRect(photoX, photoY, photoW, photoH);
+
+  if (photoDataUrl) {
+    try {
+      const photo = await loadPhoto(photoDataUrl);
+      drawCoverRect(ctx, photo, photoX, photoY, photoW, photoH);
+    } catch {
+      drawSilhouette(ctx, photoX, photoY, photoW, photoH);
+    }
+  } else {
+    drawSilhouette(ctx, photoX, photoY, photoW, photoH);
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = HH.yellow;
+  ctx.lineWidth = Math.max(1.5, width * 0.003);
+  roundedRect(
+    ctx,
+    photoX + width * 0.01,
+    photoY + width * 0.01,
+    photoW - width * 0.02,
+    photoH - width * 0.02,
+    photoR * 0.72,
+  );
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(photoX + width * 0.012, photoY - width * 0.004);
+  ctx.rotate((-7 * Math.PI) / 180);
+  ctx.font = `700 ${Math.round(width * 0.018)}px "${monoFamily}"`;
+  const tag = "#FrameInGoa";
+  const tagW = ctx.measureText(tag).width + width * 0.028;
+  const tagH = width * 0.036;
+  ctx.fillStyle = HH.cream;
+  roundedRect(ctx, 0, -tagH / 2, tagW, tagH, tagH / 2);
+  ctx.fill();
+  ctx.strokeStyle = HH.pink;
+  ctx.lineWidth = Math.max(2, width * 0.003);
+  roundedRect(ctx, 0, -tagH / 2, tagW, tagH, tagH / 2);
+  ctx.stroke();
+  ctx.fillStyle = HH.pink;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(tag, tagW / 2, 1);
+  ctx.restore();
+
+  const colW = photoW * 0.48;
+  const leftX = photoX;
+  const rightX = photoX + photoW;
+  const footerY = panelY + panelH - width * 0.048;
+
+  const nameLayout = layoutName(
+    ctx,
+    name,
+    displayFamily,
+    photoW,
+    width * 0.112,
+    width * 0.048,
+  );
+  ctx.font = `900 ${nameLayout.size}px "${displayFamily}"`;
+  const nameMetrics = ctx.measureText(nameLayout.lines[0] ?? name);
+  const nameAscent =
+    nameMetrics.actualBoundingBoxAscent || nameLayout.size * 0.8;
+  const nameDescent =
+    nameMetrics.actualBoundingBoxDescent || nameLayout.size * 0.22;
+  const lineStep = nameAscent + nameDescent + width * 0.008;
+  const identityY =
+    photoY + photoH + width * 0.062 + nameAscent;
+
+  ctx.fillStyle = HH.green900;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  nameLayout.lines.forEach((line, index) => {
+    ctx.fillText(line, leftX, identityY + index * lineStep);
+  });
+
+  let titleSize = Math.round(width * 0.02);
+  ctx.font = `700 ${titleSize}px "${monoFamily}"`;
+  while (
+    titleSize > width * 0.014 &&
+    ctx.measureText(title).width > colW - width * 0.06
+  ) {
+    titleSize -= 1;
+    ctx.font = `700 ${titleSize}px "${monoFamily}"`;
+  }
+  const titlePadX = width * 0.022;
+  const titleW = Math.min(
+    colW,
+    ctx.measureText(title).width + titlePadX * 2,
+  );
+  const titleH = width * 0.042;
+  const titleY =
+    identityY +
+    (nameLayout.lines.length - 1) * lineStep +
+    nameDescent +
+    width * 0.022;
+  ctx.fillStyle = HH.pink;
+  roundedRect(ctx, leftX, titleY, titleW, titleH, titleH / 2);
+  ctx.fill();
+  ctx.fillStyle = HH.cream;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(title, leftX + titleW / 2, titleY + titleH / 2);
+
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  let rightY = titleY + titleH / 2;
+  if (role) {
+    ctx.fillStyle = HH.green500;
+    ctx.font = `700 ${Math.round(width * 0.022)}px "${monoFamily}"`;
+    ctx.fillText(role, rightX, rightY);
+    rightY += width * 0.036;
+  }
+  if (handle) {
+    ctx.fillStyle = HH.green700;
+    ctx.font = `700 ${Math.round(width * 0.02)}px "${monoFamily}"`;
+    ctx.fillText(`@${handle}`, rightX, role ? rightY : titleY + titleH / 2);
+  }
+
+  ctx.fillStyle = HH.green700;
+  ctx.font = `700 ${Math.round(width * 0.016)}px "${monoFamily}"`;
+  fillTextSpaced(
+    ctx,
+    "GOA, INDIA · 28–31 OCT 2026",
+    width / 2,
+    footerY,
+    width * 0.004,
   );
 }

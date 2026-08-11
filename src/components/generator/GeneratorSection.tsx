@@ -42,7 +42,11 @@ export function GeneratorSection() {
           {format === "card" ? <BuilderForm /> : null}
         </div>
 
-        <aside className="md:sticky md:top-20 md:row-span-2 md:self-start">
+        <div className="min-w-0 px-page pb-6 md:col-start-1 md:pb-16">
+          <FrameControls />
+        </div>
+
+        <aside className="md:col-start-2 md:row-span-2 md:row-start-1 md:sticky md:top-20 md:self-start">
           <PinnedBoard
             pin={format === "card" ? "yellow" : "pink"}
             className="rounded-none border-x-0 px-page pb-5 pt-7 md:min-h-full md:border-l md:border-r-0"
@@ -56,10 +60,6 @@ export function GeneratorSection() {
             </div>
           </PinnedBoard>
         </aside>
-
-        <div className="min-w-0 px-page pb-12 md:pb-16">
-          <FrameControls />
-        </div>
       </div>
     </section>
   );

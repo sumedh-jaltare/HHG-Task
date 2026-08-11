@@ -340,11 +340,11 @@ function drawSunMark(
   ctx.beginPath();
   ctx.arc(0, 0, size * 0.22, 0, TAU);
   ctx.fill();
-  for (let i = 0; i < 7; i += 1) {
-    const a = (i / 7) * Math.PI - Math.PI * 0.08;
+  for (let i = 0; i < 12; i += 1) {
+    const a = (i / 12) * TAU;
     ctx.beginPath();
     ctx.moveTo(Math.cos(a) * size * 0.3, Math.sin(a) * size * 0.3);
-    ctx.lineTo(Math.cos(a) * size * 0.46, Math.sin(a) * size * 0.46);
+    ctx.lineTo(Math.cos(a) * size * 0.48, Math.sin(a) * size * 0.48);
     ctx.stroke();
   }
   ctx.restore();

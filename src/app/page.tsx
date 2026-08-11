@@ -16,14 +16,6 @@ export default function Home() {
         <StudioClock className="hidden min-[700px]:inline" />
         <nav className="flex shrink-0 items-center gap-2 sm:gap-5">
           <a
-            href="https://hhgoa.com"
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-[11px] uppercase tracking-[0.14em] text-hh-cream/80 transition-colors hover:text-hh-yellow sm:tracking-[0.18em]"
-          >
-            HH Goa
-          </a>
-          <a
             href="#generator"
             className="rounded-full bg-hh-yellow px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-hh-green-900 shadow-stamp-sm transition-all duration-150 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none sm:px-5 sm:py-2 sm:tracking-[0.16em]"
           >
@@ -65,15 +57,7 @@ export default function Home() {
 
       <footer className="relative z-10 w-full border-t border-hh-cream/10 px-page py-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-center">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-hh-cream/55">
-          Built for{" "}
-          <a
-            href="https://hhgoa.com"
-            target="_blank"
-            rel="noreferrer"
-            className="text-hh-yellow underline-offset-4 hover:underline"
-          >
-            HH Goa 2026
-          </a>
+          Built for HH Goa 2026
         </p>
       </footer>
     </div>

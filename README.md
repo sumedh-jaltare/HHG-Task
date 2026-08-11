@@ -1,6 +1,6 @@
 # HH Goa 2026 — Frame & Builder ID Generator
 
-Upload a photo, get a branded [Hacker House Goa 2026](https://hhgoa.com/) X profile frame or Builder ID card in seconds.
+Upload a photo, get a branded Hacker House Goa 2026 X profile frame or Builder ID card in seconds.
 
 Shortlisting submission for the HH Goa Open Trials `#FrameInGoa` task. Visual identity matches the official site: forest green, sunflower yellow, magenta stamp, Fraunces + Space Mono.
 

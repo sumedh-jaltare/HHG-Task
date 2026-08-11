@@ -16,10 +16,12 @@ export default function Home() {
         </span>
         <nav className="flex shrink-0 items-center gap-2 sm:gap-5">
           <a
-            href="#check-hype"
+            href="https://hhgoa.com"
+            target="_blank"
+            rel="noreferrer"
             className="font-mono text-[11px] uppercase tracking-[0.14em] text-hh-cream/80 transition-colors hover:text-hh-yellow sm:tracking-[0.18em]"
           >
-            Check Hype
+            HH Goa
           </a>
           <a
             href="#generator"
@@ -73,7 +75,19 @@ export default function Home() {
 
       <GeneratorSection />
 
-      <div id="check-hype" className="sr-only" />
+      <footer className="relative z-10 border-t border-hh-cream/10 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-center">
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-hh-cream/55">
+          Built for{" "}
+          <a
+            href="https://hhgoa.com"
+            target="_blank"
+            rel="noreferrer"
+            className="text-hh-yellow underline-offset-4 hover:underline"
+          >
+            HH Goa 2026
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }

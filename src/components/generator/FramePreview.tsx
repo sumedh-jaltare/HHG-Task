@@ -26,10 +26,12 @@ export function FramePreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawGen = useRef(0);
   const [ready, setReady] = useState(false);
+  const [drawError, setDrawError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (format !== "frame" || !croppedImageUrl) {
       setReady(false);
+      setDrawError(null);
       return;
     }
 
@@ -38,19 +40,33 @@ export function FramePreview() {
     if (!canvas || !ctx) return;
 
     const gen = ++drawGen.current;
+    setDrawError(null);
     void (async () => {
-      const offscreen = document.createElement("canvas");
-      offscreen.width = FRAME_EXPORT_SIZE;
-      offscreen.height = FRAME_EXPORT_SIZE;
-      const offCtx = offscreen.getContext("2d");
-      if (!offCtx) return;
-      await drawFrame(offCtx, croppedImageUrl, FRAME_EXPORT_SIZE, ringTheme);
-      if (drawGen.current !== gen) return;
-      ctx.clearRect(0, 0, FRAME_EXPORT_SIZE, FRAME_EXPORT_SIZE);
-      ctx.drawImage(offscreen, 0, 0);
-      setReady(true);
+      try {
+        const offscreen = document.createElement("canvas");
+        offscreen.width = FRAME_EXPORT_SIZE;
+        offscreen.height = FRAME_EXPORT_SIZE;
+        const offCtx = offscreen.getContext("2d");
+        if (!offCtx) {
+          throw new Error("Couldn't open a drawing surface for this frame.");
+        }
+        await drawFrame(offCtx, croppedImageUrl, FRAME_EXPORT_SIZE, ringTheme);
+        if (drawGen.current !== gen) return;
+        ctx.clearRect(0, 0, FRAME_EXPORT_SIZE, FRAME_EXPORT_SIZE);
+        ctx.drawImage(offscreen, 0, 0);
+        setReady(true);
+      } catch (caught) {
+        if (drawGen.current !== gen) return;
+        setDrawError(
+          caught instanceof Error
+            ? caught
+            : new Error("Something went wrong rendering your image — try a different photo"),
+        );
+      }
     })();
   }, [format, croppedImageUrl, ringTheme]);
+
+  if (drawError) throw drawError;
 
   if (format !== "frame" || !croppedImageUrl) return null;
 

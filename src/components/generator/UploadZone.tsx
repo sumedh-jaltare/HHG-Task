@@ -49,7 +49,11 @@ export function UploadZone() {
 
   return (
     <div className="space-y-3">
+      <label htmlFor="photo-upload" className="sr-only">
+        Upload a photo
+      </label>
       <input
+        id="photo-upload"
         ref={inputRef}
         type="file"
         accept={IMAGE_ACCEPT}

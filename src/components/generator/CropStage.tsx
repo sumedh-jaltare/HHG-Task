@@ -6,7 +6,7 @@ import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import Cropper, { type Area } from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function CropStage() {
   const format = useGeneratorStore((s) => s.format);
@@ -19,8 +19,24 @@ export function CropStage() {
   const [cropPixels, setCropPixels] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [frameHeight, setFrameHeight] = useState(360);
 
   const aspect = ASPECT_BY_FORMAT[format];
+
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const apply = () => {
+      const width = el.clientWidth;
+      if (!width) return;
+      setFrameHeight(Math.min(480, Math.round(width / aspect)));
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [aspect, rawImageUrl, croppedImageUrl]);
 
   useEffect(() => {
     setCropPixels(null);
@@ -88,7 +104,11 @@ export function CropStage() {
 
   return (
     <div className="space-y-4">
-      <div className="relative h-[360px] overflow-hidden rounded-2xl bg-hh-green-900 sm:h-[420px]">
+      <div
+        ref={frameRef}
+        className="crop-stage-frame"
+        style={{ position: "relative", width: "100%", height: frameHeight }}
+      >
         <Cropper
           image={rawImageUrl}
           crop={cropSettings.crop}
@@ -98,18 +118,21 @@ export function CropStage() {
           maxZoom={3}
           cropShape={format === "frame" ? "round" : "rect"}
           showGrid={false}
-          objectFit="contain"
+          objectFit="cover"
           onCropChange={(crop) => setCropSettings({ crop })}
           onZoomChange={(zoom) => setCropSettings({ zoom })}
           onCropComplete={onCropComplete}
           style={{
-            containerStyle: { backgroundColor: "#0D2820" },
+            containerStyle: {
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#0D2820",
+            },
             cropAreaStyle: {
               border: "2px solid #F4D35E",
-              color: "#F4D35E",
+              color: "rgba(13, 40, 32, 0.62)",
             },
           }}
-          classes={{}}
         />
       </div>
 

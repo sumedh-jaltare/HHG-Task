@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { BuilderForm } from "@/components/generator/BuilderForm";
 import { CardPreview } from "@/components/generator/CardPreview";
 import { CropStage } from "@/components/generator/CropStage";
@@ -10,6 +11,7 @@ import { useGeneratorStore } from "@/lib/store";
 
 export function GeneratorSection() {
   const rawImageUrl = useGeneratorStore((s) => s.rawImageUrl);
+  const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
   const format = useGeneratorStore((s) => s.format);
 
   return (
@@ -35,8 +37,10 @@ export function GeneratorSection() {
           {rawImageUrl ? <CropStage /> : null}
           {format === "card" ? <BuilderForm /> : null}
           <div id="canvas-output">
-            <FramePreview />
-            <CardPreview />
+            <ErrorBoundary key={`${format}:${croppedImageUrl ?? "empty"}`}>
+              <FramePreview />
+              <CardPreview />
+            </ErrorBoundary>
           </div>
         </div>
       </div>

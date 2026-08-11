@@ -20,6 +20,16 @@ body {
   font-family: var(--font-space-mono), ui-monospace, monospace;
 }
 
+@layer base {
+  button:focus-visible,
+  a:focus-visible,
+  input:not(.sr-only):focus-visible,
+  [role="tab"]:focus-visible,
+  [role="radio"]:focus-visible {
+    @apply outline-none ring-2 ring-hh-yellow ring-offset-2 ring-offset-hh-green-900;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -28,6 +38,22 @@ body {
   .headline-display {
     font-optical-sizing: none;
     font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 1;
+  }
+}
+
+/* Explicit px height so react-easy-crop's absolute Cropper has a real box to fill. */
+.crop-stage-frame {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #0d2820;
+}
+
+@media (min-width: 640px) {
+  .crop-stage-frame {
+    height: 420px;
   }
 }
 

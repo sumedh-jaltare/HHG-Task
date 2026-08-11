@@ -22,10 +22,12 @@ export function CardPreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawGen = useRef(0);
   const [ready, setReady] = useState(false);
+  const [drawError, setDrawError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (format !== "card" || !croppedImageUrl) {
       setReady(false);
+      setDrawError(null);
       return;
     }
 
@@ -34,24 +36,38 @@ export function CardPreview() {
     if (!canvas || !ctx) return;
 
     const gen = ++drawGen.current;
+    setDrawError(null);
     const timer = window.setTimeout(() => {
       void (async () => {
-        const offscreen = document.createElement("canvas");
-        offscreen.width = CARD_EXPORT_WIDTH;
-        offscreen.height = CARD_EXPORT_HEIGHT;
-        const offCtx = offscreen.getContext("2d");
-        if (!offCtx) return;
-        await drawCard(
-          offCtx,
-          croppedImageUrl,
-          { name, role, title, handle },
-          CARD_EXPORT_WIDTH,
-          CARD_EXPORT_HEIGHT,
-        );
-        if (drawGen.current !== gen) return;
-        ctx.clearRect(0, 0, CARD_EXPORT_WIDTH, CARD_EXPORT_HEIGHT);
-        ctx.drawImage(offscreen, 0, 0);
-        setReady(true);
+        try {
+          const offscreen = document.createElement("canvas");
+          offscreen.width = CARD_EXPORT_WIDTH;
+          offscreen.height = CARD_EXPORT_HEIGHT;
+          const offCtx = offscreen.getContext("2d");
+          if (!offCtx) {
+            throw new Error("Couldn't open a drawing surface for this card.");
+          }
+          await drawCard(
+            offCtx,
+            croppedImageUrl,
+            { name, role, title, handle },
+            CARD_EXPORT_WIDTH,
+            CARD_EXPORT_HEIGHT,
+          );
+          if (drawGen.current !== gen) return;
+          ctx.clearRect(0, 0, CARD_EXPORT_WIDTH, CARD_EXPORT_HEIGHT);
+          ctx.drawImage(offscreen, 0, 0);
+          setReady(true);
+        } catch (caught) {
+          if (drawGen.current !== gen) return;
+          setDrawError(
+            caught instanceof Error
+              ? caught
+              : new Error(
+                  "Something went wrong rendering your image — try a different photo",
+                ),
+          );
+        }
       })();
     }, 80);
 
@@ -66,6 +82,8 @@ export function CardPreview() {
     title,
     handle,
   ]);
+
+  if (drawError) throw drawError;
 
   if (format !== "card" || !croppedImageUrl) return null;
 

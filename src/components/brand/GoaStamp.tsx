@@ -9,7 +9,7 @@ export function GoaStamp({ className }: GoaStampProps) {
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none select-none -rotate-[8deg] drop-shadow-[3px_3px_0_rgba(13,40,32,0.35)]",
+        "pointer-events-none select-none drop-shadow-[3px_3px_0_rgba(13,40,32,0.35)]",
         className,
       )}
     >

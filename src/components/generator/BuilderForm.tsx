@@ -2,13 +2,15 @@
 
 import { pickRandomTitle } from "@/lib/builderTitles";
 import { useGeneratorStore } from "@/lib/store";
-import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export function BuilderForm() {
   const format = useGeneratorStore((s) => s.format);
   const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
   const details = useGeneratorStore((s) => s.builderDetails);
   const setBuilderDetails = useGeneratorStore((s) => s.setBuilderDetails);
+  const [spinning, setSpinning] = useState(false);
 
   useEffect(() => {
     if (format !== "card") return;
@@ -25,7 +27,7 @@ export function BuilderForm() {
   if (format !== "card") return null;
 
   return (
-    <div className="space-y-4 rounded-2xl border border-hh-cream/15 bg-hh-green-700/40 p-4">
+    <div className="space-y-4 rounded-sm border border-hh-cream/15 bg-hh-green-700/40 p-4">
       <label htmlFor="builder-name" className="block space-y-1.5">
         <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-hh-cream/60">
           Name
@@ -95,15 +97,19 @@ export function BuilderForm() {
           >
             {details.title || "Add a name, then roll a title"}
           </p>
-          <button
+          <motion.button
             type="button"
-            onClick={() =>
-              setBuilderDetails({ title: pickRandomTitle(details.title) })
-            }
-            className="shrink-0 rounded-full bg-hh-yellow px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-hh-green-900 shadow-stamp-sm transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+            animate={{ rotate: spinning ? 360 : 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            onClick={() => {
+              setSpinning(true);
+              setBuilderDetails({ title: pickRandomTitle(details.title) });
+              window.setTimeout(() => setSpinning(false), 450);
+            }}
+            className="shrink-0 rounded-sm bg-hh-yellow px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-hh-green-900 shadow-stamp-sm transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
           >
-            Generate my title
-          </button>
+            Roll a title
+          </motion.button>
         </div>
       </div>
     </div>

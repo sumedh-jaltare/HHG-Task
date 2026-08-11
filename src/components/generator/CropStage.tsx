@@ -30,7 +30,7 @@ export function CropStage() {
     const apply = () => {
       const width = el.clientWidth;
       if (!width) return;
-      setFrameHeight(Math.min(480, Math.round(width / aspect)));
+      setFrameHeight(Math.min(340, Math.round(width / aspect)));
     };
     apply();
     const observer = new ResizeObserver(apply);
@@ -73,16 +73,18 @@ export function CropStage() {
 
   if (croppedImageUrl) {
     return (
-      <div className="flex items-center gap-4 rounded-2xl border border-hh-cream/15 bg-hh-green-700/50 p-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={croppedImageUrl}
-          alt="Cropped preview"
-          className={cn(
-            "h-16 w-16 object-cover",
-            format === "frame" ? "rounded-full" : "h-[5.35rem] rounded-lg",
-          )}
-        />
+      <div className="flex items-center gap-4 rounded-sm border border-hh-cream/15 bg-hh-green-700/50 p-3">
+        <div className="shrink-0 rotate-[-3deg] bg-hh-cream p-1 shadow-stamp">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={croppedImageUrl}
+            alt="Cropped preview"
+            className={cn(
+              "h-16 w-16 object-cover",
+              format === "frame" ? "rounded-full" : "h-[5.35rem] rounded-sm",
+            )}
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-hh-yellow">
             Crop locked
@@ -107,7 +109,7 @@ export function CropStage() {
       <div
         ref={frameRef}
         className="crop-stage-frame"
-        style={{ position: "relative", width: "100%", height: frameHeight }}
+        style={{ height: frameHeight }}
       >
         <Cropper
           image={rawImageUrl}
@@ -138,7 +140,7 @@ export function CropStage() {
 
       <label className="block">
         <span className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/60">
-          Zoom
+          Zoom · film strip
         </span>
         <input
           type="range"
@@ -163,9 +165,9 @@ export function CropStage() {
         type="button"
         onClick={() => void applyCrop()}
         disabled={busy || !cropPixels}
-        className="w-full rounded-full bg-hh-yellow px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-[0.18em] text-hh-green-900 shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-stamp-sm disabled:cursor-not-allowed disabled:opacity-60"
+        className="stamp-slam w-full rounded-sm bg-hh-yellow px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-[0.18em] text-hh-green-900 shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {busy ? "Cropping…" : "Use this crop"}
+        {busy ? "Stamping…" : "Stamp this crop"}
       </button>
     </div>
   );

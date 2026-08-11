@@ -4,10 +4,8 @@ import { ExportActions } from "@/components/generator/ExportActions";
 import {
   FRAME_EXPORT_SIZE,
   FRAME_PROP_KINDS,
-  RING_THEMES,
   STICKER_INKS,
   drawFrame,
-  resolveMarkColor,
   type FramePropKind,
   type RingTheme,
 } from "@/lib/canvas/drawFrame";
@@ -34,19 +32,14 @@ export function FramePreview() {
   const format = useGeneratorStore((s) => s.format);
   const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
   const ringTheme = useGeneratorStore((s) => s.ringTheme);
-  const setRingTheme = useGeneratorStore((s) => s.setRingTheme);
   const name = useGeneratorStore((s) => s.builderDetails.name);
-  const setBuilderDetails = useGeneratorStore((s) => s.setBuilderDetails);
   const frameProps = useGeneratorStore((s) => s.frameProps);
-  const frameInk = useGeneratorStore((s) => s.frameInk);
-  const addFrameProp = useGeneratorStore((s) => s.addFrameProp);
   const moveFrameProp = useGeneratorStore((s) => s.moveFrameProp);
-  const recolorFrameProp = useGeneratorStore((s) => s.recolorFrameProp);
   const removeFrameProp = useGeneratorStore((s) => s.removeFrameProp);
-  const setFrameInk = useGeneratorStore((s) => s.setFrameInk);
+  const selectedPropId = useGeneratorStore((s) => s.selectedFramePropId);
+  const setSelectedPropId = useGeneratorStore((s) => s.setSelectedFramePropId);
   const stageRef = useRef<HTMLDivElement>(null);
   const dragId = useRef<string | null>(null);
-  const [selectedPropId, setSelectedPropId] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawGen = useRef(0);
@@ -105,7 +98,7 @@ export function FramePreview() {
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-5"
     >
-      <div className="relative mx-auto w-full max-w-[420px]">
+      <div className="relative mx-auto w-full max-w-[320px]">
         {!ready ? (
           <div
             aria-hidden
@@ -117,7 +110,7 @@ export function FramePreview() {
           width={FRAME_EXPORT_SIZE}
           height={FRAME_EXPORT_SIZE}
           className={cn(
-            "mx-auto aspect-square w-full max-w-[420px] rounded-full shadow-stamp",
+            "mx-auto aspect-square w-full rounded-full shadow-stamp",
             ready ? "opacity-100" : "opacity-0",
           )}
         />
@@ -127,7 +120,8 @@ export function FramePreview() {
               key={prop.id}
               className={cn(
                 "absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-start justify-end rounded-full",
-                selectedPropId === prop.id && "ring-2 ring-hh-yellow ring-offset-2 ring-offset-hh-green-900",
+                selectedPropId === prop.id &&
+                  "ring-2 ring-hh-yellow ring-offset-2 ring-offset-hh-green-900",
               )}
               style={{ left: `${prop.x * 100}%`, top: `${prop.y * 100}%` }}
             >
@@ -162,10 +156,7 @@ export function FramePreview() {
                 type="button"
                 aria-label={`Remove ${PROP_LABELS[prop.kind]}`}
                 onPointerDown={(event) => event.stopPropagation()}
-                onClick={() => {
-                  if (selectedPropId === prop.id) setSelectedPropId(null);
-                  removeFrameProp(prop.id);
-                }}
+                onClick={() => removeFrameProp(prop.id)}
                 className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full bg-hh-green-900 text-[10px] font-bold text-hh-yellow"
               >
                 ×
@@ -174,6 +165,42 @@ export function FramePreview() {
           ))}
         </div>
       </div>
+
+      <p className="text-center font-mono text-xs leading-relaxed text-hh-cream/65">
+        This is your final PFP — download it or share straight to X below.
+      </p>
+      <div id="export-actions">
+        <ExportActions
+          canvasRef={canvasRef}
+          filenamePrefix="hh-goa-frame"
+          ready={ready}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+export function FrameControls() {
+  const format = useGeneratorStore((s) => s.format);
+  const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
+  const ringTheme = useGeneratorStore((s) => s.ringTheme);
+  const setRingTheme = useGeneratorStore((s) => s.setRingTheme);
+  const name = useGeneratorStore((s) => s.builderDetails.name);
+  const setBuilderDetails = useGeneratorStore((s) => s.setBuilderDetails);
+  const frameProps = useGeneratorStore((s) => s.frameProps);
+  const frameInk = useGeneratorStore((s) => s.frameInk);
+  const addFrameProp = useGeneratorStore((s) => s.addFrameProp);
+  const recolorFrameProp = useGeneratorStore((s) => s.recolorFrameProp);
+  const setFrameInk = useGeneratorStore((s) => s.setFrameInk);
+  const selectedPropId = useGeneratorStore((s) => s.selectedFramePropId);
+
+  if (format !== "frame" || !croppedImageUrl) return null;
+
+  return (
+    <div className="space-y-5 rounded-sm border border-hh-cream/10 bg-hh-green-700/40 p-4">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-yellow">
+        Stamp kit
+      </p>
 
       <label htmlFor="frame-name" className="block space-y-1.5">
         <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/55">
@@ -195,20 +222,17 @@ export function FramePreview() {
           Stickers — tap to add, drag to place, × to remove
         </legend>
         <div className="flex flex-wrap gap-2">
-          {FRAME_PROP_KINDS.map((kind) => {
-            const color = resolveMarkColor(RING_THEMES[ringTheme], frameInk);
-            return (
-              <button
+          {FRAME_PROP_KINDS.map((kind) => (
+              <motion.button
                 key={kind}
                 type="button"
+                whileTap={{ scale: 0.9, y: 2 }}
                 onClick={() => addFrameProp(kind)}
-                className="rounded-full border-2 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-hh-cream"
-                style={{ borderColor: color, color }}
+                className="rounded-full border-2 border-hh-cream/35 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-hh-cream shadow-stamp-sm hover:border-hh-yellow hover:text-hh-yellow"
               >
                 {PROP_LABELS[kind]}
-              </button>
-            );
-          })}
+              </motion.button>
+          ))}
         </div>
       </fieldset>
 
@@ -229,19 +253,20 @@ export function FramePreview() {
                 ink.hex
               : frameInk === ink.hex;
             return (
-              <button
+              <motion.button
                 key={ink.id}
                 type="button"
                 role="radio"
                 aria-checked={selected}
                 aria-label={ink.label}
                 title={ink.label}
+                whileTap={{ scale: 0.85 }}
                 onClick={() => {
                   setFrameInk(ink.hex);
                   if (selectedPropId) recolorFrameProp(selectedPropId, ink.hex);
                 }}
                 className={cn(
-                  "h-9 w-9 rounded-full border-2 transition-transform",
+                  "h-9 w-9 rounded-full border-2 shadow-stamp-sm",
                   selected
                     ? "scale-110 border-hh-yellow"
                     : "border-hh-cream/25 hover:border-hh-cream/60",
@@ -284,17 +309,6 @@ export function FramePreview() {
           })}
         </div>
       </fieldset>
-
-      <p className="text-center font-mono text-xs leading-relaxed text-hh-cream/65">
-        This is your final PFP — download it or share straight to X below.
-      </p>
-      <div id="export-actions">
-        <ExportActions
-          canvasRef={canvasRef}
-          filenamePrefix="hh-goa-frame"
-          ready={ready}
-        />
-      </div>
-    </motion.div>
+    </div>
   );
 }

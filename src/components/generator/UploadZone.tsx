@@ -62,14 +62,28 @@ export function UploadZone() {
       />
 
       {rawImageUrl ? (
-        <button
-          type="button"
-          onClick={openPicker}
-          disabled={reading}
-          className="rounded-full border-2 border-hh-cream/30 px-5 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-hh-cream transition-colors hover:border-hh-yellow hover:text-hh-yellow disabled:opacity-60"
-        >
-          {reading ? "Reading your photo…" : "Change photo"}
-        </button>
+        <div className="flex items-center gap-4">
+          <motion.div
+            initial={{ rotate: -6, scale: 0.9 }}
+            animate={{ rotate: -3, scale: 1 }}
+            className="shrink-0 bg-hh-cream p-1.5 shadow-stamp"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={rawImageUrl}
+              alt=""
+              className="h-16 w-16 object-cover"
+            />
+          </motion.div>
+          <button
+            type="button"
+            onClick={openPicker}
+            disabled={reading}
+            className="rounded-full border-2 border-hh-cream/30 px-5 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-hh-cream transition-colors hover:border-hh-yellow hover:text-hh-yellow disabled:opacity-60"
+          >
+            {reading ? "Reading your photo…" : "Change photo"}
+          </button>
+        </div>
       ) : (
         <motion.button
           type="button"
@@ -85,17 +99,21 @@ export function UploadZone() {
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          animate={{ scale: dragging ? 1.02 : 1 }}
+          animate={{ scale: dragging ? 1.03 : 1, rotate: dragging ? -1 : 0 }}
           transition={{ type: "spring", stiffness: 380, damping: 28 }}
           className={cn(
-            "flex min-h-[200px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors",
+            "flex min-h-[148px] w-full flex-col items-center justify-center rounded-sm border-2 border-dashed px-5 py-7 text-center transition-colors",
             dragging
-              ? "border-hh-yellow bg-hh-yellow/10"
-              : "border-hh-cream/40 bg-hh-green-700/40 hover:border-hh-yellow/70",
+              ? "border-hh-yellow bg-hh-yellow/15 shadow-stamp"
+              : "border-hh-cream/40 bg-hh-green-700/40 hover:border-hh-yellow/70 hover:bg-hh-cream/[0.03]",
           )}
         >
+          <span
+            aria-hidden
+            className="mb-3 h-11 w-9 rotate-[-6deg] bg-hh-cream/90 shadow-stamp"
+          />
           <span className="font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-hh-yellow">
-            {reading ? "Reading your photo…" : "Drop a photo"}
+            {reading ? "Reading your photo…" : "Drop a polaroid"}
           </span>
           <span className="mt-3 max-w-xs font-mono text-sm leading-relaxed text-hh-cream/70">
             {reading

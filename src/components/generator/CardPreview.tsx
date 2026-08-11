@@ -94,7 +94,7 @@ export function CardPreview() {
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-5"
     >
-      <div className="relative mx-auto w-full max-w-[360px]">
+      <div className="relative mx-auto w-full max-w-[280px]">
         {!ready ? (
           <div
             aria-hidden
@@ -106,7 +106,7 @@ export function CardPreview() {
           width={CARD_EXPORT_WIDTH}
           height={CARD_EXPORT_HEIGHT}
           className={cn(
-            "mx-auto aspect-[3/4] w-full max-w-[360px] rounded-2xl shadow-stamp",
+            "mx-auto aspect-[3/4] w-full rounded-sm shadow-stamp",
             ready ? "opacity-100" : "opacity-0",
           )}
         />

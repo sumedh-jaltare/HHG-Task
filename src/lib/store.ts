@@ -62,6 +62,7 @@ type GeneratorState = {
   ringTheme: RingTheme;
   frameProps: FrameProp[];
   frameInk: string;
+  selectedFramePropId: string | null;
   setFormat: (format: GeneratorFormat) => void;
   setRawImage: (file: File) => void;
   setCroppedImageUrl: (url: string | null) => void;
@@ -73,6 +74,7 @@ type GeneratorState = {
   recolorFrameProp: (id: string, color: string) => void;
   removeFrameProp: (id: string) => void;
   setFrameInk: (color: string) => void;
+  setSelectedFramePropId: (id: string | null) => void;
   reset: () => void;
 };
 
@@ -105,12 +107,14 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
   ringTheme: "classic",
   frameProps: defaultFrameProps(),
   frameInk: STICKER_INKS[1].hex,
+  selectedFramePropId: null,
 
   setFormat: (format) =>
     set({
       format,
       croppedImageUrl: null,
       frameProps: format === "frame" ? defaultFrameProps() : [],
+      selectedFramePropId: null,
       cropSettings: {
         crop: { x: 0, y: 0 },
         zoom: 1,
@@ -186,9 +190,13 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
   removeFrameProp: (id) =>
     set({
       frameProps: get().frameProps.filter((prop) => prop.id !== id),
+      selectedFramePropId:
+        get().selectedFramePropId === id ? null : get().selectedFramePropId,
     }),
 
   setFrameInk: (frameInk) => set({ frameInk }),
+
+  setSelectedFramePropId: (selectedFramePropId) => set({ selectedFramePropId }),
 
   reset: () => {
     revokeIfObjectUrl(get().rawImageUrl);
@@ -202,6 +210,7 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
       ringTheme: "classic",
       frameProps: defaultFrameProps(),
       frameInk: STICKER_INKS[1].hex,
+      selectedFramePropId: null,
     });
   },
 }));

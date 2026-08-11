@@ -178,14 +178,29 @@ export function ExportActions({
   };
 
   return (
-    <div className="space-y-3 pb-[env(safe-area-inset-bottom)]">
-      <div className="flex flex-col gap-3 sm:flex-row">
+    <div className="relative w-full space-y-3 pb-[env(safe-area-inset-bottom)]">
+      <AnimatePresence>
+        {downloaded ? (
+          <motion.span
+            key="stamp-burst"
+            aria-hidden
+            initial={{ scale: 1.6, opacity: 0, rotate: -18 }}
+            animate={{ scale: 1, opacity: 1, rotate: -8 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 380, damping: 18 }}
+            className="pointer-events-none absolute -right-1 -top-8 z-10 font-stamp text-2xl font-extrabold text-hh-pink"
+          >
+            गोवा
+          </motion.span>
+        ) : null}
+      </AnimatePresence>
+      <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
         <button
           type="button"
           onClick={() => void handleDownload()}
           disabled={!ready || busy}
           className={cn(
-            "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-hh-yellow px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-[0.18em] text-hh-green-900 shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 sm:flex-1",
+            "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm bg-hh-yellow px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-green-900 shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 sm:px-4",
           )}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -232,7 +247,7 @@ export function ExportActions({
             onClick={() => void handleCopy()}
             disabled={!ready || busy}
             className={cn(
-              "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-hh-cream bg-transparent px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-[0.18em] text-hh-cream shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-cream hover:text-hh-green-900 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-cream sm:flex-1",
+              "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm border-2 border-hh-cream bg-transparent px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-cream shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-cream hover:text-hh-green-900 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-cream sm:px-4",
             )}
           >
             {copying ? (
@@ -259,7 +274,7 @@ export function ExportActions({
           onClick={() => void handleShare()}
           disabled={!ready || busy}
           className={cn(
-            "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-hh-pink bg-transparent px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-[0.18em] text-hh-pink shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-pink hover:text-hh-cream hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-pink sm:flex-1",
+            "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm border-2 border-hh-pink bg-transparent px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-pink shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-pink hover:text-hh-cream hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-pink sm:px-4",
           )}
         >
           {sharing ? (

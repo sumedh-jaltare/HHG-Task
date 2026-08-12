@@ -1,9 +1,26 @@
 const LOCAL_FALLBACK = "http://localhost:3000";
 
+function resolveSiteOrigin(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configured) return configured;
+
+  // Vercel sets these without a protocol; prefer the stable production host.
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (production) {
+    return production.includes("://") ? production : `https://${production}`;
+  }
+
+  const deployment = process.env.VERCEL_URL?.trim();
+  if (deployment) {
+    return deployment.includes("://") ? deployment : `https://${deployment}`;
+  }
+
+  return LOCAL_FALLBACK;
+}
+
 export function getSiteUrl() {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim() || LOCAL_FALLBACK;
   try {
-    return new URL(raw);
+    return new URL(resolveSiteOrigin());
   } catch {
     return new URL(LOCAL_FALLBACK);
   }

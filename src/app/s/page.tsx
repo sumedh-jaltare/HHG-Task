@@ -37,6 +37,12 @@ export async function generateMetadata({
   const caption = shareCaption(searchParams.caption);
   const title = caption || DEFAULT_TITLE;
   const description = caption || DEFAULT_DESCRIPTION;
+  const shareUrl = new URL("/s", getSiteUrl());
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (typeof value === "string" && value) {
+      shareUrl.searchParams.set(key, value);
+    }
+  }
 
   if (!og) {
     return {
@@ -45,6 +51,7 @@ export async function generateMetadata({
       openGraph: {
         title: DEFAULT_TITLE,
         description: DEFAULT_DESCRIPTION,
+        url: shareUrl,
         images: [
           {
             url: "/og-default.png",
@@ -69,7 +76,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: getSiteUrl(),
+      url: shareUrl,
       images: [
         {
           url: og.href,

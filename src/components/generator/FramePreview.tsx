@@ -5,6 +5,7 @@ import {
   FRAME_EXPORT_SIZE,
   FRAME_NAME_MAX_LENGTH,
   FRAME_PROP_KINDS,
+  RING_THEMES,
   STICKER_INKS,
   drawFrame,
   type FrameBackground,
@@ -65,7 +66,7 @@ export function FramePreview() {
     }
 
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvas?.getContext("2d", { alpha: true });
     if (!canvas || !ctx) return;
 
     const gen = ++drawGen.current;
@@ -75,7 +76,7 @@ export function FramePreview() {
         const offscreen = document.createElement("canvas");
         offscreen.width = FRAME_EXPORT_SIZE;
         offscreen.height = FRAME_EXPORT_SIZE;
-        const offCtx = offscreen.getContext("2d");
+        const offCtx = offscreen.getContext("2d", { alpha: true });
         if (!offCtx) {
           throw new Error("Couldn't open a drawing surface for this frame.");
         }
@@ -103,6 +104,9 @@ export function FramePreview() {
 
   if (format !== "frame" || !croppedImageUrl) return null;
 
+  const isClear = frameBackground === "transparent";
+  const previewMatte = RING_THEMES[ringTheme].previewMatte;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.96 }}
@@ -110,11 +114,17 @@ export function FramePreview() {
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-5"
     >
-      <div className="relative mx-auto w-full max-w-[240px] sm:max-w-[320px]">
+      <div
+        className={cn(
+          "relative mx-auto w-full max-w-[240px] overflow-hidden rounded-sm sm:max-w-[320px]",
+          isClear && "preview-checker",
+        )}
+        style={isClear ? undefined : { backgroundColor: previewMatte }}
+      >
         {!ready ? (
           <div
             aria-hidden
-            className="absolute inset-0 animate-pulse rounded-full bg-hh-green-700"
+            className="absolute inset-0 animate-pulse bg-hh-green-700"
           />
         ) : null}
         <canvas
@@ -122,11 +132,12 @@ export function FramePreview() {
           width={FRAME_EXPORT_SIZE}
           height={FRAME_EXPORT_SIZE}
           className={cn(
-            "mx-auto aspect-square w-full rounded-full shadow-stamp",
+            "relative z-[1] mx-auto aspect-square w-full",
+            !isClear && "shadow-stamp",
             ready ? "opacity-100" : "opacity-0",
           )}
         />
-        <div ref={stageRef} className="absolute inset-0 touch-none">
+        <div ref={stageRef} className="absolute inset-0 z-[2] touch-none">
           {frameProps.map((prop) => (
             <div
               key={prop.id}

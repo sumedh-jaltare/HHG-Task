@@ -57,6 +57,37 @@ body {
     background-size: 14px 14px;
   }
 
+  /* Preview-only transparency cue — never baked into the export canvas. */
+  .preview-checker {
+    background-color: #12332a;
+    background-image: linear-gradient(
+        45deg,
+        rgba(245, 239, 223, 0.07) 25%,
+        transparent 25%
+      ),
+      linear-gradient(
+        -45deg,
+        rgba(245, 239, 223, 0.07) 25%,
+        transparent 25%
+      ),
+      linear-gradient(
+        45deg,
+        transparent 75%,
+        rgba(245, 239, 223, 0.07) 75%
+      ),
+      linear-gradient(
+        -45deg,
+        transparent 75%,
+        rgba(245, 239, 223, 0.07) 75%
+      );
+    background-position:
+      0 0,
+      0 10px,
+      10px -10px,
+      -10px 0;
+    background-size: 20px 20px;
+  }
+
   .px-page {
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1rem, env(safe-area-inset-right));

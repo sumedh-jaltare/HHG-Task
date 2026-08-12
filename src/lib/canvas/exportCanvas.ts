@@ -15,7 +15,8 @@ export function canvasToBlob(
             );
             return;
           }
-          resolve(blob);
+          // Re-wrap so the MIME type is always explicit for clipboard consumers.
+          resolve(new Blob([blob], { type: blob.type || type }));
         },
         type,
         quality,
@@ -28,6 +29,16 @@ export function canvasToBlob(
       );
     }
   });
+}
+
+/** ClipboardItem must receive a Promise when blob creation is async (Safari + alpha). */
+export async function writePngToClipboard(blobOrPromise: Blob | Promise<Blob>) {
+  const pngPromise = Promise.resolve(blobOrPromise).then(
+    (blob) => new Blob([blob], { type: "image/png" }),
+  );
+  await navigator.clipboard.write([
+    new ClipboardItem({ "image/png": pngPromise }),
+  ]);
 }
 
 export function downloadBlob(blob: Blob, filename: string): void {

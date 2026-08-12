@@ -4,6 +4,7 @@ import { ExportActions } from "@/components/generator/ExportActions";
 import {
   CARD_EXPORT_HEIGHT,
   CARD_EXPORT_WIDTH,
+  CARD_THEMES,
   drawCard,
 } from "@/lib/canvas/drawCard";
 import { type FramePropKind } from "@/lib/canvas/drawFrame";
@@ -110,6 +111,8 @@ export function CardPreview() {
 
   if (format !== "card" || !croppedImageUrl) return null;
 
+  const previewMatte = CARD_THEMES[cardTheme].previewMatte;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.96 }}
@@ -117,11 +120,14 @@ export function CardPreview() {
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-5"
     >
-      <div className="relative mx-auto w-full max-w-[220px] sm:max-w-[280px]">
+      <div
+        className="relative mx-auto w-full max-w-[220px] overflow-hidden rounded-sm sm:max-w-[280px]"
+        style={{ backgroundColor: previewMatte }}
+      >
         {!ready ? (
           <div
             aria-hidden
-            className="absolute inset-0 animate-pulse rounded-2xl bg-hh-green-700"
+            className="absolute inset-0 animate-pulse bg-hh-green-700"
           />
         ) : null}
         <canvas
@@ -129,11 +135,11 @@ export function CardPreview() {
           width={CARD_EXPORT_WIDTH}
           height={CARD_EXPORT_HEIGHT}
           className={cn(
-            "mx-auto aspect-[3/4] w-full rounded-sm shadow-stamp",
+            "relative z-[1] mx-auto aspect-[3/4] w-full shadow-stamp",
             ready ? "opacity-100" : "opacity-0",
           )}
         />
-        <div ref={stageRef} className="absolute inset-0 touch-none">
+        <div ref={stageRef} className="absolute inset-0 z-[2] touch-none">
           {frameProps.map((prop) => (
             <div
               key={prop.id}

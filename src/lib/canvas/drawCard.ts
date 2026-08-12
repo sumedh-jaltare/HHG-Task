@@ -33,6 +33,8 @@ export type CardThemeTokens = {
   silhouette: string;
   pinA: string;
   pinB: string;
+  /** Preview-only CSS matte behind the canvas — never drawn into the export. */
+  previewMatte: string;
 };
 
 export const CARD_THEMES: Record<CardTheme, CardThemeTokens> = {
@@ -55,6 +57,7 @@ export const CARD_THEMES: Record<CardTheme, CardThemeTokens> = {
     silhouette: "#2D6A4F",
     pinA: "#E63888",
     pinB: "#F4D35E",
+    previewMatte: "#0D2820",
   },
   night: {
     field: "#0D2820",
@@ -75,6 +78,7 @@ export const CARD_THEMES: Record<CardTheme, CardThemeTokens> = {
     silhouette: "#2D6A4F",
     pinA: "#E63888",
     pinB: "#F4D35E",
+    previewMatte: "#F5EFDF",
   },
   punch: {
     field: "#E63888",
@@ -95,6 +99,7 @@ export const CARD_THEMES: Record<CardTheme, CardThemeTokens> = {
     silhouette: "#2D6A4F",
     pinA: "#F4D35E",
     pinB: "#12332A",
+    previewMatte: "#0D2820",
   },
 };
 

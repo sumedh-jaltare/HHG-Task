@@ -1,6 +1,6 @@
 "use client";
 
-import { canvasToBlob, canvasToTwitterOgBlob, downloadBlob } from "@/lib/canvas/exportCanvas";
+import { canvasToBlob, canvasToTwitterOgBlob, downloadBlob, writePngToClipboard } from "@/lib/canvas/exportCanvas";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Download, Loader2, Share2 } from "lucide-react";
@@ -160,10 +160,8 @@ export function ExportActions({
     setCopied(false);
     setCopying(true);
     try {
-      const blob = await canvasToBlob(canvas);
-      await navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob }),
-      ]);
+      // Copy the visible canvas as-is so Clear/White/Green match Download.
+      await writePngToClipboard(canvasToBlob(canvas));
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch (caught) {

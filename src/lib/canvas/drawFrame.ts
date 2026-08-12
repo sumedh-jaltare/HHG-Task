@@ -101,6 +101,8 @@ export const RING_THEMES: Record<
     text: string;
     markA: string;
     markB: string;
+    /** Preview-only CSS matte behind the canvas — never drawn into the export. */
+    previewMatte: string;
   }
 > = {
   classic: {
@@ -110,6 +112,7 @@ export const RING_THEMES: Record<
     text: "#0D2820",
     markA: "#E63888",
     markB: "#12332A",
+    previewMatte: "#0D2820",
   },
   night: {
     collar: "#1C4735",
@@ -118,6 +121,7 @@ export const RING_THEMES: Record<
     text: "#F5EFDF",
     markA: "#F4D35E",
     markB: "#F5EFDF",
+    previewMatte: "#F5EFDF",
   },
   punch: {
     collar: "#F5EFDF",
@@ -126,6 +130,7 @@ export const RING_THEMES: Record<
     text: "#0D2820",
     markA: "#E63888",
     markB: "#12332A",
+    previewMatte: "#0D2820",
   },
 };
 
@@ -574,14 +579,14 @@ export async function drawFrame(
   if (background !== "transparent") {
     ctx.fillStyle = FRAME_BACKGROUNDS[background];
     ctx.fillRect(0, 0, size, size);
-  }
 
-  ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,0.22)";
-  ctx.beginPath();
-  ctx.arc(cx + size * 0.006, cy + size * 0.008, outerR, 0, TAU);
-  ctx.fill();
-  ctx.restore();
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.22)";
+    ctx.beginPath();
+    ctx.arc(cx + size * 0.006, cy + size * 0.008, outerR, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
 
   ctx.save();
   ctx.beginPath();
@@ -655,4 +660,17 @@ export async function drawFrame(
 
   ctx.fillStyle = theme.text;
   drawTextOnArc(ctx, arc, cx, cy, textRadius, startAngle, font);
+
+  // Guarantee square corners stay fully transparent (no stray shadow / opaque fill).
+  // Keep a margin so ring-edge stickers are not erased.
+  if (background === "transparent") {
+    const keepR = outerR + propSize * 0.72;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, size, size);
+    ctx.arc(cx, cy, keepR, 0, TAU, true);
+    ctx.clip("evenodd");
+    ctx.clearRect(0, 0, size, size);
+    ctx.restore();
+  }
 }

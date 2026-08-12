@@ -29,14 +29,13 @@ const OPTIONS: {
 ];
 
 function FormatNote({
-  value,
   label,
   kicker,
   pin,
   rotate,
   active,
   onSelect,
-}: (typeof OPTIONS)[number] & {
+}: Omit<(typeof OPTIONS)[number], "value"> & {
   active: boolean;
   onSelect: () => void;
 }) {
@@ -120,12 +119,12 @@ export function FormatToggle() {
       aria-label="Output format"
       className="grid grid-cols-2 gap-3"
     >
-      {OPTIONS.map((option) => (
+      {OPTIONS.map(({ value, ...rest }) => (
         <FormatNote
-          key={option.value}
-          {...option}
-          active={format === option.value}
-          onSelect={() => setFormat(option.value)}
+          key={value}
+          {...rest}
+          active={format === value}
+          onSelect={() => setFormat(value)}
         />
       ))}
     </div>

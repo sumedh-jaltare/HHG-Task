@@ -1,7 +1,6 @@
 "use client";
 
 import { canvasToBlob, canvasToTwitterOgBlob, downloadBlob } from "@/lib/canvas/exportCanvas";
-import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Download, Loader2, Share2 } from "lucide-react";
@@ -13,12 +12,8 @@ type ExportActionsProps = {
   ready?: boolean;
 };
 
-const FRAME_CAPTION =
+const SHARE_CAPTION =
   "Frame on. Title set. See you in Goa, 28–31 Oct. #FrameInGoa";
-
-function builderCaption(_title: string) {
-  return FRAME_CAPTION;
-}
 
 function isShareAbort(error: unknown) {
   if (!(error instanceof Error)) return false;
@@ -56,7 +51,6 @@ export function ExportActions({
   filenamePrefix,
   ready = true,
 }: ExportActionsProps) {
-  const title = useGeneratorStore((s) => s.builderDetails.title);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -66,7 +60,7 @@ export function ExportActions({
   const [error, setError] = useState<string | null>(null);
 
   const isFrame = filenamePrefix === "hh-goa-frame";
-  const caption = isFrame ? FRAME_CAPTION : builderCaption(title);
+  const caption = SHARE_CAPTION;
   const busy = downloading || sharing || copying;
 
   useEffect(() => {

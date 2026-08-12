@@ -5,6 +5,7 @@ import Link from "next/link";
 
 type ShareSearch = {
   img?: string;
+  og?: string;
   caption?: string;
   h?: string;
 };
@@ -16,6 +17,9 @@ type SharePageProps = {
 const DEFAULT_TITLE = "HH Goa 2026 — Frame & Builder ID Generator";
 const DEFAULT_DESCRIPTION =
   "Upload your photo, get a branded HH Goa 2026 X profile frame or Builder ID card in seconds.";
+
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 628;
 
 function shareCaption(raw: string | undefined) {
   return (raw ?? "").trim().slice(0, 280);
@@ -29,19 +33,26 @@ export async function generateMetadata({
   searchParams,
 }: SharePageProps): Promise<Metadata> {
   const img = parseAllowedBlobImageUrl(searchParams.img);
+  const og = parseAllowedBlobImageUrl(searchParams.og) ?? img;
   const caption = shareCaption(searchParams.caption);
-  const height = shareHeight(searchParams.h);
   const title = caption || DEFAULT_TITLE;
   const description = caption || DEFAULT_DESCRIPTION;
 
-  if (!img) {
+  if (!og) {
     return {
       title: DEFAULT_TITLE,
       description: DEFAULT_DESCRIPTION,
       openGraph: {
         title: DEFAULT_TITLE,
         description: DEFAULT_DESCRIPTION,
-        images: [{ url: "/og-default.png", alt: DEFAULT_TITLE }],
+        images: [
+          {
+            url: "/og-default.png",
+            width: OG_WIDTH,
+            height: OG_HEIGHT,
+            alt: DEFAULT_TITLE,
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
@@ -61,9 +72,9 @@ export async function generateMetadata({
       url: getSiteUrl(),
       images: [
         {
-          url: img.href,
-          width: 1080,
-          height,
+          url: og.href,
+          width: OG_WIDTH,
+          height: OG_HEIGHT,
           alt: caption || "HH Goa 2026 graphic",
         },
       ],
@@ -72,7 +83,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [img.href],
+      images: [og.href],
     },
   };
 }

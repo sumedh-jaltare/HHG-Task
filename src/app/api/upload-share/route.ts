@@ -61,7 +61,23 @@ export async function POST(request: Request) {
       contentType: "image/png",
     });
 
-    return NextResponse.json({ url: blob.url });
+    let ogUrl: string | undefined;
+    const ogFile = form.get("og");
+    if (ogFile instanceof Blob) {
+      const ogNamed = ogFile instanceof File ? ogFile.name : "";
+      const ogIsPng =
+        ogFile.type === "image/png" || ogNamed.toLowerCase().endsWith(".png");
+      if (ogIsPng && ogFile.size <= MAX_BYTES) {
+        const ogBlob = await put(`shares/${crypto.randomUUID()}-og.png`, ogFile, {
+          access: "public",
+          addRandomSuffix: false,
+          contentType: "image/png",
+        });
+        ogUrl = ogBlob.url;
+      }
+    }
+
+    return NextResponse.json({ url: blob.url, ogUrl });
   } catch (caught) {
     const message =
       caught instanceof Error && caught.message

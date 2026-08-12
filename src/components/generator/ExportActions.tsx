@@ -1,6 +1,6 @@
 "use client";
 
-import { canvasToBlob, downloadBlob } from "@/lib/canvas/exportCanvas";
+import { canvasToBlob, canvasToTwitterOgBlob, downloadBlob } from "@/lib/canvas/exportCanvas";
 import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -14,12 +14,10 @@ type ExportActionsProps = {
 };
 
 const FRAME_CAPTION =
-  "Just made my HH Goa 2026 PFP frame 🌴 See you on the beach, builders. #FrameInGoa";
+  "Frame on. Title set. See you in Goa, 28–31 Oct. #FrameInGoa";
 
-function builderCaption(title: string) {
-  const trimmed = title.trim().slice(0, 48);
-  const label = trimmed || "untitled builder";
-  return `My HH Goa 2026 Builder ID is ready — ${label} incoming. #FrameInGoa`;
+function builderCaption(_title: string) {
+  return FRAME_CAPTION;
 }
 
 function isShareAbort(error: unknown) {
@@ -118,12 +116,14 @@ export function ExportActions({
 
       const form = new FormData();
       form.append("file", blob, "hhgoa.png");
+      const ogBlob = await canvasToTwitterOgBlob(canvas);
+      form.append("og", ogBlob, "hhgoa-og.png");
       const response = await fetch("/api/upload-share", {
         method: "POST",
         body: form,
       });
       const payload = (await response.json().catch(() => null)) as
-        | { url?: string; error?: string }
+        | { url?: string; ogUrl?: string; error?: string }
         | null;
       if (!response.ok || !payload?.url) {
         throw new Error(
@@ -134,12 +134,18 @@ export function ExportActions({
 
       const sharePage = new URL("/s", window.location.origin);
       sharePage.searchParams.set("img", payload.url);
+      if (payload.ogUrl) {
+        sharePage.searchParams.set("og", payload.ogUrl);
+      }
       sharePage.searchParams.set("caption", caption);
       sharePage.searchParams.set("h", String(canvas.height || (isFrame ? 1080 : 1440)));
 
       const intent = new URL("https://twitter.com/intent/tweet");
-      intent.searchParams.set("text", caption);
-      intent.searchParams.set("url", sharePage.toString());
+      // Put the link on its own line (X's separate `url` param often joins mid-line).
+      intent.searchParams.set(
+        "text",
+        `${caption}\n\n${sharePage.toString()}`,
+      );
       window.open(intent.toString(), "_blank", "noopener,noreferrer");
     } catch (caught) {
       if (isShareAbort(caught)) return;

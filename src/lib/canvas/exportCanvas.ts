@@ -41,3 +41,33 @@ export function downloadBlob(blob: Blob, filename: string): void {
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
+
+/** X summary_large_image is ~1.91:1 (1200×628). Letterbox the export so nothing is cropped. */
+export async function canvasToTwitterOgBlob(
+  source: HTMLCanvasElement,
+): Promise<Blob> {
+  const OG_W = 1200;
+  const OG_H = 628;
+  const og = document.createElement("canvas");
+  og.width = OG_W;
+  og.height = OG_H;
+  const ctx = og.getContext("2d");
+  if (!ctx) {
+    throw new Error("Couldn't build the X preview image.");
+  }
+
+  ctx.fillStyle = "#12332A";
+  ctx.fillRect(0, 0, OG_W, OG_H);
+
+  const pad = 28;
+  const maxW = OG_W - pad * 2;
+  const maxH = OG_H - pad * 2;
+  const scale = Math.min(maxW / source.width, maxH / source.height);
+  const dw = source.width * scale;
+  const dh = source.height * scale;
+  const dx = (OG_W - dw) / 2;
+  const dy = (OG_H - dh) / 2;
+  ctx.drawImage(source, dx, dy, dw, dh);
+
+  return canvasToBlob(og);
+}

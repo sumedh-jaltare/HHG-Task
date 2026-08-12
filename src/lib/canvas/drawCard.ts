@@ -1,4 +1,5 @@
 import { canvasFamily, ensureCanvasFonts } from "@/lib/canvas/fonts";
+import { drawPropMark, type FrameProp } from "@/lib/canvas/drawFrame";
 
 export const CARD_EXPORT_WIDTH = 1080;
 export const CARD_EXPORT_HEIGHT = 1440;
@@ -332,6 +333,7 @@ export async function drawCard(
   width: number,
   height: number,
   cardTheme: CardTheme = "classic",
+  placements: FrameProp[] = [],
 ): Promise<void> {
   const theme = CARD_THEMES[cardTheme];
   const displayFamily = canvasFamily("--font-fraunces", "Fraunces");
@@ -567,4 +569,17 @@ export async function drawCard(
     footerY,
     width * 0.004,
   );
+
+  const propSize = width * 0.1;
+  for (const prop of placements) {
+    drawPropMark(
+      ctx,
+      prop.kind,
+      prop.x * width,
+      prop.y * height,
+      propSize,
+      prop.color || theme.accent,
+      monoFamily,
+    );
+  }
 }

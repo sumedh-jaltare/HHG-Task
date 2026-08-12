@@ -529,6 +529,18 @@ function drawKindMark(
   drawWaveMark(ctx, x, y, size, color);
 }
 
+export function drawPropMark(
+  ctx: CanvasRenderingContext2D,
+  kind: FramePropKind,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  fontFamily: string,
+) {
+  drawKindMark(ctx, kind, x, y, size, color, fontFamily);
+}
+
 export type DrawFrameExtras = {
   name?: string;
   placements?: FrameProp[];

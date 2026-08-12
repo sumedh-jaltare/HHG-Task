@@ -171,7 +171,20 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
 
   addFrameProp: (kind) => {
     const current = get().frameProps;
-    const angle = -Math.PI / 2 + (current.length + 1) * 0.85;
+    const format = get().format;
+    let x: number;
+    let y: number;
+    if (format === "card") {
+      const i = current.length;
+      x = 0.22 + (i % 4) * 0.18;
+      y = 0.74 + Math.floor(i / 4) * 0.06;
+      x = Math.min(0.88, Math.max(0.12, x));
+      y = Math.min(0.88, Math.max(0.72, y));
+    } else {
+      const angle = -Math.PI / 2 + (current.length + 1) * 0.85;
+      x = 0.5 + Math.cos(angle) * RING_PROP_RADIUS;
+      y = 0.5 + Math.sin(angle) * RING_PROP_RADIUS;
+    }
     set({
       frameProps: [
         ...current,
@@ -179,8 +192,8 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
           id: crypto.randomUUID(),
           kind,
           color: get().frameInk,
-          x: 0.5 + Math.cos(angle) * RING_PROP_RADIUS,
-          y: 0.5 + Math.sin(angle) * RING_PROP_RADIUS,
+          x,
+          y,
         },
       ],
     });

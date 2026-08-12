@@ -1,6 +1,9 @@
 "use client";
 
+import { CARD_THEMES } from "@/lib/canvas/drawCard";
+import { RING_THEMES } from "@/lib/canvas/drawFrame";
 import { canvasToBlob, canvasToTwitterOgBlob, downloadBlob, writePngToClipboard } from "@/lib/canvas/exportCanvas";
+import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Download, Loader2, Share2 } from "lucide-react";
@@ -60,6 +63,11 @@ export function ExportActions({
   const [error, setError] = useState<string | null>(null);
 
   const isFrame = filenamePrefix === "hh-goa-frame";
+  const ringTheme = useGeneratorStore((s) => s.ringTheme);
+  const cardTheme = useGeneratorStore((s) => s.cardTheme);
+  const ogFill = isFrame
+    ? RING_THEMES[ringTheme].previewMatte
+    : CARD_THEMES[cardTheme].previewMatte;
   const caption = SHARE_CAPTION;
   const busy = downloading || sharing || copying;
 
@@ -110,7 +118,7 @@ export function ExportActions({
 
       const form = new FormData();
       form.append("file", blob, "hhgoa.png");
-      const ogBlob = await canvasToTwitterOgBlob(canvas);
+      const ogBlob = await canvasToTwitterOgBlob(canvas, { fill: ogFill });
       form.append("og", ogBlob, "hhgoa-og.png");
       const response = await fetch("/api/upload-share", {
         method: "POST",

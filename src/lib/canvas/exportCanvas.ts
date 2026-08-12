@@ -56,7 +56,9 @@ export function downloadBlob(blob: Blob, filename: string): void {
 /** X summary_large_image is ~1.91:1 (1200×628). Letterbox the export so nothing is cropped. */
 export async function canvasToTwitterOgBlob(
   source: HTMLCanvasElement,
+  options: { fill?: string } = {},
 ): Promise<Blob> {
+  const fill = options.fill ?? "#12332A";
   const OG_W = 1200;
   const OG_H = 628;
   const og = document.createElement("canvas");
@@ -67,7 +69,7 @@ export async function canvasToTwitterOgBlob(
     throw new Error("Couldn't build the X preview image.");
   }
 
-  ctx.fillStyle = "#12332A";
+  ctx.fillStyle = fill;
   ctx.fillRect(0, 0, OG_W, OG_H);
 
   const pad = 28;

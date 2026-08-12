@@ -1,15 +1,24 @@
 "use client";
 
 import { pickRandomTitle } from "@/lib/builderTitles";
-import { useGeneratorStore } from "@/lib/store";
+import { type CardTheme, useGeneratorStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+
+const CARD_THEME_OPTIONS: { value: CardTheme; label: string }[] = [
+  { value: "classic", label: "Classic" },
+  { value: "night", label: "Night" },
+  { value: "punch", label: "Punch" },
+];
 
 export function BuilderForm() {
   const format = useGeneratorStore((s) => s.format);
   const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
   const details = useGeneratorStore((s) => s.builderDetails);
   const setBuilderDetails = useGeneratorStore((s) => s.setBuilderDetails);
+  const cardTheme = useGeneratorStore((s) => s.cardTheme);
+  const setCardTheme = useGeneratorStore((s) => s.setCardTheme);
   const [spinning, setSpinning] = useState(false);
 
   useEffect(() => {
@@ -28,6 +37,38 @@ export function BuilderForm() {
 
   return (
     <div className="space-y-4 rounded-sm border border-hh-cream/15 bg-hh-green-700/40 p-4">
+      <fieldset className="space-y-2">
+        <legend className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-hh-cream/60">
+          Card style
+        </legend>
+        <div
+          role="radiogroup"
+          aria-label="Card style"
+          className="flex rounded-full border border-hh-cream/20 p-1"
+        >
+          {CARD_THEME_OPTIONS.map((theme) => {
+            const active = cardTheme === theme.value;
+            return (
+              <button
+                key={theme.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setCardTheme(theme.value)}
+                className={cn(
+                  "flex-1 rounded-full px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] transition-colors",
+                  active
+                    ? "bg-hh-yellow text-hh-green-900"
+                    : "text-hh-cream/75 hover:text-hh-cream",
+                )}
+              >
+                {theme.label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
       <label htmlFor="builder-name" className="block space-y-1.5">
         <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-hh-cream/60">
           Name

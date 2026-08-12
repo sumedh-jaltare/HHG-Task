@@ -18,6 +18,7 @@ export function CardPreview() {
   const role = useGeneratorStore((s) => s.builderDetails.role);
   const title = useGeneratorStore((s) => s.builderDetails.title);
   const handle = useGeneratorStore((s) => s.builderDetails.handle);
+  const cardTheme = useGeneratorStore((s) => s.cardTheme);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawGen = useRef(0);
@@ -53,6 +54,7 @@ export function CardPreview() {
             { name, role, title, handle },
             CARD_EXPORT_WIDTH,
             CARD_EXPORT_HEIGHT,
+            cardTheme,
           );
           if (drawGen.current !== gen) return;
           ctx.clearRect(0, 0, CARD_EXPORT_WIDTH, CARD_EXPORT_HEIGHT);
@@ -81,6 +83,7 @@ export function CardPreview() {
     role,
     title,
     handle,
+    cardTheme,
   ]);
 
   if (drawError) throw drawError;

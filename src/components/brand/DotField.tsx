@@ -8,7 +8,7 @@ const BASE_R = 1;
 const MAX_SCALE = 4;
 const RADIUS = 95;
 const RADIUS_SQ = RADIUS * RADIUS;
-const LERP = 0.16;
+const LERP = 1;
 const IDLE_EPS = 0.08;
 
 const CREAM = { r: 245, g: 239, b: 223, a: 0.07 };

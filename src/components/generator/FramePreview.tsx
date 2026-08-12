@@ -6,6 +6,7 @@ import {
   FRAME_PROP_KINDS,
   STICKER_INKS,
   drawFrame,
+  type FrameBackground,
   type FramePropKind,
   type RingTheme,
 } from "@/lib/canvas/drawFrame";
@@ -20,6 +21,8 @@ const PROP_LABELS: Record<FramePropKind, string> = {
   sun: "Sun",
   year: "2026",
   wave: "Wave",
+  starfish: "Star",
+  compass: "Compass",
 };
 
 const THEMES: { value: RingTheme; label: string }[] = [
@@ -28,10 +31,17 @@ const THEMES: { value: RingTheme; label: string }[] = [
   { value: "punch", label: "Punch" },
 ];
 
+const BACKGROUNDS: { value: FrameBackground; label: string }[] = [
+  { value: "transparent", label: "Clear" },
+  { value: "white", label: "White" },
+  { value: "green", label: "Green" },
+];
+
 export function FramePreview() {
   const format = useGeneratorStore((s) => s.format);
   const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
   const ringTheme = useGeneratorStore((s) => s.ringTheme);
+  const frameBackground = useGeneratorStore((s) => s.frameBackground);
   const name = useGeneratorStore((s) => s.builderDetails.name);
   const frameProps = useGeneratorStore((s) => s.frameProps);
   const moveFrameProp = useGeneratorStore((s) => s.moveFrameProp);
@@ -71,6 +81,7 @@ export function FramePreview() {
         await drawFrame(offCtx, croppedImageUrl, FRAME_EXPORT_SIZE, ringTheme, {
           name,
           placements: frameProps,
+          background: frameBackground,
         });
         if (drawGen.current !== gen) return;
         ctx.clearRect(0, 0, FRAME_EXPORT_SIZE, FRAME_EXPORT_SIZE);
@@ -85,7 +96,7 @@ export function FramePreview() {
         );
       }
     })();
-  }, [format, croppedImageUrl, ringTheme, name, frameProps]);
+  }, [format, croppedImageUrl, ringTheme, frameBackground, name, frameProps]);
 
   if (drawError) throw drawError;
 
@@ -185,6 +196,8 @@ export function FrameControls() {
   const croppedImageUrl = useGeneratorStore((s) => s.croppedImageUrl);
   const ringTheme = useGeneratorStore((s) => s.ringTheme);
   const setRingTheme = useGeneratorStore((s) => s.setRingTheme);
+  const frameBackground = useGeneratorStore((s) => s.frameBackground);
+  const setFrameBackground = useGeneratorStore((s) => s.setFrameBackground);
   const name = useGeneratorStore((s) => s.builderDetails.name);
   const setBuilderDetails = useGeneratorStore((s) => s.setBuilderDetails);
   const frameProps = useGeneratorStore((s) => s.frameProps);
@@ -304,6 +317,38 @@ export function FrameControls() {
                 )}
               >
                 {theme.label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-2">
+        <legend className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-hh-cream/55">
+          Background
+        </legend>
+        <div
+          role="radiogroup"
+          aria-label="Background"
+          className="flex rounded-full border border-hh-cream/20 p-1"
+        >
+          {BACKGROUNDS.map((option) => {
+            const active = frameBackground === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setFrameBackground(option.value)}
+                className={cn(
+                  "flex-1 rounded-full px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] transition-colors",
+                  active
+                    ? "bg-hh-yellow text-hh-green-900"
+                    : "text-hh-cream/75 hover:text-hh-cream",
+                )}
+              >
+                {option.label}
               </button>
             );
           })}

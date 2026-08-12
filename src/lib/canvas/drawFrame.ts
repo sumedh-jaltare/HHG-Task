@@ -4,7 +4,16 @@ export const FRAME_EXPORT_SIZE = 1080;
 
 export type RingTheme = "classic" | "night" | "punch";
 
-export type FramePropKind = "stamp" | "palm" | "sun" | "year" | "wave";
+export type FrameBackground = "transparent" | "white" | "green";
+
+export type FramePropKind =
+  | "stamp"
+  | "palm"
+  | "sun"
+  | "year"
+  | "wave"
+  | "starfish"
+  | "compass";
 
 export type FrameProp = {
   id: string;
@@ -27,7 +36,17 @@ export const FRAME_PROP_KINDS: FramePropKind[] = [
   "sun",
   "year",
   "wave",
+  "starfish",
+  "compass",
 ];
+
+export const FRAME_BACKGROUNDS: Record<
+  Exclude<FrameBackground, "transparent">,
+  string
+> = {
+  white: "#FFFFFF",
+  green: "#12332A",
+};
 
 /** Marks sit on the outer ring — never paint them the same token as the ring. */
 export function contrastMarkColor(
@@ -392,6 +411,88 @@ function drawWaveMark(
   ctx.restore();
 }
 
+function drawStarfishMark(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-0.15);
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineJoin = "round";
+  ctx.lineWidth = Math.max(1.5, size * 0.04);
+  ctx.beginPath();
+  for (let i = 0; i < 5; i += 1) {
+    const tip = -Math.PI / 2 + (i * TAU) / 5;
+    const notch = tip + TAU / 10;
+    const tipR = size * 0.46;
+    const notchR = size * 0.18;
+    const tx = Math.cos(tip) * tipR;
+    const ty = Math.sin(tip) * tipR;
+    const nx = Math.cos(notch) * notchR;
+    const ny = Math.sin(notch) * notchR;
+    if (i === 0) ctx.moveTo(tx, ty);
+    else ctx.lineTo(tx, ty);
+    ctx.lineTo(nx, ny);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.08, 0, TAU);
+  ctx.fillStyle = "rgba(13,40,32,0.2)";
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCompassMark(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = Math.max(2, size * 0.055);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.42, 0, TAU);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.3, 0, TAU);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 0.4);
+  ctx.lineTo(size * 0.1, 0);
+  ctx.lineTo(0, size * 0.4);
+  ctx.lineTo(-size * 0.1, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(245,239,223,0.35)";
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 0.4);
+  ctx.lineTo(size * 0.1, 0);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(0, 0, size * 0.06, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawKindMark(
   ctx: CanvasRenderingContext2D,
   kind: FramePropKind,
@@ -417,12 +518,21 @@ function drawKindMark(
     drawYearMark(ctx, x, y, size, color, fontFamily);
     return;
   }
+  if (kind === "starfish") {
+    drawStarfishMark(ctx, x, y, size, color);
+    return;
+  }
+  if (kind === "compass") {
+    drawCompassMark(ctx, x, y, size, color);
+    return;
+  }
   drawWaveMark(ctx, x, y, size, color);
 }
 
 export type DrawFrameExtras = {
   name?: string;
   placements?: FrameProp[];
+  background?: FrameBackground;
 };
 
 export async function drawFrame(
@@ -446,6 +556,12 @@ export async function drawFrame(
   const photo = await loadPhoto(photoDataUrl);
 
   ctx.clearRect(0, 0, size, size);
+
+  const background = extras.background ?? "transparent";
+  if (background !== "transparent") {
+    ctx.fillStyle = FRAME_BACKGROUNDS[background];
+    ctx.fillRect(0, 0, size, size);
+  }
 
   ctx.save();
   ctx.fillStyle = "rgba(0,0,0,0.22)";
@@ -504,7 +620,10 @@ export async function drawFrame(
   );
 
   for (const prop of extras.placements ?? []) {
-    const preferred = prop.kind === "sun" || prop.kind === "wave" ? "b" : "a";
+    const preferred =
+      prop.kind === "sun" || prop.kind === "wave" || prop.kind === "compass"
+        ? "b"
+        : "a";
     drawKindMark(
       ctx,
       prop.kind,

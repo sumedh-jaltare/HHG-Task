@@ -4,15 +4,24 @@ import {
   ASPECT_BY_FORMAT,
   type GeneratorFormat,
 } from "@/lib/image/aspect";
+import { type CardTheme } from "@/lib/canvas/drawCard";
 import {
   STICKER_INKS,
+  type FrameBackground,
   type FrameProp,
   type FramePropKind,
   type RingTheme,
 } from "@/lib/canvas/drawFrame";
 import { create } from "zustand";
 
-export type { FrameProp, FramePropKind, GeneratorFormat, RingTheme };
+export type {
+  CardTheme,
+  FrameBackground,
+  FrameProp,
+  FramePropKind,
+  GeneratorFormat,
+  RingTheme,
+};
 
 const RING_PROP_RADIUS = 0.455;
 
@@ -60,6 +69,8 @@ type GeneratorState = {
   cropSettings: CropSettings;
   builderDetails: BuilderDetails;
   ringTheme: RingTheme;
+  cardTheme: CardTheme;
+  frameBackground: FrameBackground;
   frameProps: FrameProp[];
   frameInk: string;
   selectedFramePropId: string | null;
@@ -69,6 +80,8 @@ type GeneratorState = {
   setCropSettings: (partial: Partial<CropSettings>) => void;
   setBuilderDetails: (partial: Partial<BuilderDetails>) => void;
   setRingTheme: (theme: RingTheme) => void;
+  setCardTheme: (theme: CardTheme) => void;
+  setFrameBackground: (background: FrameBackground) => void;
   addFrameProp: (kind: FramePropKind) => void;
   moveFrameProp: (id: string, x: number, y: number) => void;
   recolorFrameProp: (id: string, color: string) => void;
@@ -105,6 +118,8 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
   cropSettings: defaultCropSettings,
   builderDetails: defaultBuilderDetails,
   ringTheme: "classic",
+  cardTheme: "classic",
+  frameBackground: "transparent",
   frameProps: defaultFrameProps(),
   frameInk: STICKER_INKS[1].hex,
   selectedFramePropId: null,
@@ -149,6 +164,10 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
     }),
 
   setRingTheme: (ringTheme) => set({ ringTheme }),
+
+  setCardTheme: (cardTheme) => set({ cardTheme }),
+
+  setFrameBackground: (frameBackground) => set({ frameBackground }),
 
   addFrameProp: (kind) => {
     const current = get().frameProps;
@@ -208,6 +227,8 @@ export const useGeneratorStore = create<GeneratorState>((set, get) => ({
       cropSettings: defaultCropSettings,
       builderDetails: defaultBuilderDetails,
       ringTheme: "classic",
+      cardTheme: "classic",
+      frameBackground: "transparent",
       frameProps: defaultFrameProps(),
       frameInk: STICKER_INKS[1].hex,
       selectedFramePropId: null,

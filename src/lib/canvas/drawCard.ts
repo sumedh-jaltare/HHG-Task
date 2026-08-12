@@ -10,6 +10,92 @@ export type CardDetails = {
   handle: string;
 };
 
+export type CardTheme = "classic" | "night" | "punch";
+
+export type CardThemeTokens = {
+  field: string;
+  panel: string;
+  text: string;
+  muted: string;
+  header: string;
+  accent: string;
+  hairline: string;
+  grid: string;
+  photoBorder: string;
+  photoFill: string;
+  pillBg: string;
+  pillFg: string;
+  tagBg: string;
+  tagFg: string;
+  stamp: string;
+  silhouette: string;
+  pinA: string;
+  pinB: string;
+};
+
+export const CARD_THEMES: Record<CardTheme, CardThemeTokens> = {
+  classic: {
+    field: "#12332A",
+    panel: "#F5EFDF",
+    text: "#0D2820",
+    muted: "#1C4735",
+    header: "#12332A",
+    accent: "#E63888",
+    hairline: "#F4D35E",
+    grid: "rgba(45, 106, 79, 0.16)",
+    photoBorder: "#E63888",
+    photoFill: "#1C4735",
+    pillBg: "#E63888",
+    pillFg: "#F5EFDF",
+    tagBg: "#F5EFDF",
+    tagFg: "#E63888",
+    stamp: "#E63888",
+    silhouette: "#2D6A4F",
+    pinA: "#E63888",
+    pinB: "#F4D35E",
+  },
+  night: {
+    field: "#0D2820",
+    panel: "#1C4735",
+    text: "#F5EFDF",
+    muted: "#F4D35E",
+    header: "#F5EFDF",
+    accent: "#E63888",
+    hairline: "#F4D35E",
+    grid: "rgba(245, 239, 223, 0.1)",
+    photoBorder: "#F4D35E",
+    photoFill: "#0D2820",
+    pillBg: "#E63888",
+    pillFg: "#F5EFDF",
+    tagBg: "#0D2820",
+    tagFg: "#F4D35E",
+    stamp: "#F4D35E",
+    silhouette: "#2D6A4F",
+    pinA: "#E63888",
+    pinB: "#F4D35E",
+  },
+  punch: {
+    field: "#E63888",
+    panel: "#F5EFDF",
+    text: "#0D2820",
+    muted: "#12332A",
+    header: "#12332A",
+    accent: "#E63888",
+    hairline: "#F4D35E",
+    grid: "rgba(230, 56, 136, 0.14)",
+    photoBorder: "#12332A",
+    photoFill: "#1C4735",
+    pillBg: "#12332A",
+    pillFg: "#F4D35E",
+    tagBg: "#F4D35E",
+    tagFg: "#0D2820",
+    stamp: "#12332A",
+    silhouette: "#2D6A4F",
+    pinA: "#F4D35E",
+    pinB: "#12332A",
+  },
+};
+
 const TAU = Math.PI * 2;
 const photoCache = new Map<string, HTMLImageElement>();
 
@@ -47,12 +133,12 @@ function roundedRect(
   ctx.closePath();
 }
 
-function hashPinColor(name: string) {
+function hashPinColor(name: string, theme: CardThemeTokens) {
   let hash = 0;
   for (let i = 0; i < name.length; i += 1) {
     hash = (hash * 31 + name.charCodeAt(i)) | 0;
   }
-  return Math.abs(hash) % 2 === 0 ? "#E63888" : "#F4D35E";
+  return Math.abs(hash) % 2 === 0 ? theme.pinA : theme.pinB;
 }
 
 function fillTextSpaced(
@@ -76,16 +162,6 @@ function fillTextSpaced(
   });
   ctx.textAlign = prevAlign;
 }
-
-const HH = {
-  green900: "#0D2820",
-  green700: "#12332A",
-  green500: "#1C4735",
-  green300: "#2D6A4F",
-  yellow: "#F4D35E",
-  pink: "#E63888",
-  cream: "#F5EFDF",
-} as const;
 
 function layoutName(
   ctx: CanvasRenderingContext2D,
@@ -149,12 +225,13 @@ function drawPanelGrid(
   w: number,
   h: number,
   r: number,
+  gridColor: string,
 ) {
   ctx.save();
   roundedRect(ctx, x, y, w, h, r);
   ctx.clip();
   const step = Math.max(22, w * 0.038);
-  ctx.strokeStyle = "rgba(45, 106, 79, 0.16)";
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let gx = x + step; gx < x + w; gx += step) {
@@ -204,10 +281,11 @@ function drawSilhouette(
   y: number,
   w: number,
   h: number,
+  color: string,
 ) {
   const cx = x + w / 2;
   const headR = w * 0.16;
-  ctx.fillStyle = HH.green300;
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(cx, y + h * 0.38, headR, 0, TAU);
   ctx.fill();
@@ -253,7 +331,9 @@ export async function drawCard(
   details: CardDetails,
   width: number,
   height: number,
+  cardTheme: CardTheme = "classic",
 ): Promise<void> {
+  const theme = CARD_THEMES[cardTheme];
   const displayFamily = canvasFamily("--font-fraunces", "Fraunces");
   const monoFamily = canvasFamily("--font-space-mono", "Space Mono");
 
@@ -269,7 +349,7 @@ export async function drawCard(
   const handle = details.handle.trim().replace(/^@+/, "");
 
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = HH.green700;
+  ctx.fillStyle = theme.field;
   ctx.fillRect(0, 0, width, height);
 
   const margin = width * 0.046;
@@ -279,12 +359,12 @@ export async function drawCard(
   const panelH = height - margin * 2.05;
   const panelR = width * 0.034;
 
-  ctx.fillStyle = HH.cream;
+  ctx.fillStyle = theme.panel;
   roundedRect(ctx, panelX, panelY, panelW, panelH, panelR);
   ctx.fill();
-  drawPanelGrid(ctx, panelX, panelY, panelW, panelH, panelR);
+  drawPanelGrid(ctx, panelX, panelY, panelW, panelH, panelR, theme.grid);
 
-  ctx.strokeStyle = HH.yellow;
+  ctx.strokeStyle = theme.hairline;
   ctx.lineWidth = Math.max(2, width * 0.0035);
   roundedRect(
     ctx,
@@ -296,7 +376,7 @@ export async function drawCard(
   );
   ctx.stroke();
 
-  const pinColor = hashPinColor(details.name.trim());
+  const pinColor = hashPinColor(details.name.trim(), theme);
   const pinX = width / 2;
   const pinY = panelY + width * 0.016;
   ctx.beginPath();
@@ -313,7 +393,7 @@ export async function drawCard(
   ctx.fill();
 
   const headerY = panelY + width * 0.068;
-  ctx.fillStyle = HH.green700;
+  ctx.fillStyle = theme.header;
   ctx.font = `700 ${Math.round(width * 0.018)}px "${monoFamily}"`;
   ctx.textBaseline = "middle";
   fillTextSpaced(
@@ -329,7 +409,7 @@ export async function drawCard(
     panelX + panelW - width * 0.078,
     headerY,
     width * 0.092,
-    HH.pink,
+    theme.stamp,
     monoFamily,
   );
 
@@ -344,7 +424,7 @@ export async function drawCard(
   roundedRect(ctx, photoX + 7, photoY + 8, photoW, photoH, photoR);
   ctx.fill();
 
-  ctx.fillStyle = HH.pink;
+  ctx.fillStyle = theme.photoBorder;
   roundedRect(
     ctx,
     photoX - border / 2,
@@ -358,7 +438,7 @@ export async function drawCard(
   ctx.save();
   roundedRect(ctx, photoX, photoY, photoW, photoH, photoR);
   ctx.clip();
-  ctx.fillStyle = HH.green500;
+  ctx.fillStyle = theme.photoFill;
   ctx.fillRect(photoX, photoY, photoW, photoH);
 
   if (photoDataUrl) {
@@ -366,14 +446,14 @@ export async function drawCard(
       const photo = await loadPhoto(photoDataUrl);
       drawCoverRect(ctx, photo, photoX, photoY, photoW, photoH);
     } catch {
-      drawSilhouette(ctx, photoX, photoY, photoW, photoH);
+      drawSilhouette(ctx, photoX, photoY, photoW, photoH, theme.silhouette);
     }
   } else {
-    drawSilhouette(ctx, photoX, photoY, photoW, photoH);
+    drawSilhouette(ctx, photoX, photoY, photoW, photoH, theme.silhouette);
   }
   ctx.restore();
 
-  ctx.strokeStyle = HH.yellow;
+  ctx.strokeStyle = theme.hairline;
   ctx.lineWidth = Math.max(1.5, width * 0.003);
   roundedRect(
     ctx,
@@ -392,14 +472,14 @@ export async function drawCard(
   const tag = "#FrameInGoa";
   const tagW = ctx.measureText(tag).width + width * 0.028;
   const tagH = width * 0.036;
-  ctx.fillStyle = HH.cream;
+  ctx.fillStyle = theme.tagBg;
   roundedRect(ctx, 0, -tagH / 2, tagW, tagH, tagH / 2);
   ctx.fill();
-  ctx.strokeStyle = HH.pink;
+  ctx.strokeStyle = theme.tagFg;
   ctx.lineWidth = Math.max(2, width * 0.003);
   roundedRect(ctx, 0, -tagH / 2, tagW, tagH, tagH / 2);
   ctx.stroke();
-  ctx.fillStyle = HH.pink;
+  ctx.fillStyle = theme.tagFg;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(tag, tagW / 2, 1);
@@ -428,7 +508,7 @@ export async function drawCard(
   const identityY =
     photoY + photoH + width * 0.062 + nameAscent;
 
-  ctx.fillStyle = HH.green900;
+  ctx.fillStyle = theme.text;
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   nameLayout.lines.forEach((line, index) => {
@@ -455,10 +535,10 @@ export async function drawCard(
     (nameLayout.lines.length - 1) * lineStep +
     nameDescent +
     width * 0.022;
-  ctx.fillStyle = HH.pink;
+  ctx.fillStyle = theme.pillBg;
   roundedRect(ctx, leftX, titleY, titleW, titleH, titleH / 2);
   ctx.fill();
-  ctx.fillStyle = HH.cream;
+  ctx.fillStyle = theme.pillFg;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(title, leftX + titleW / 2, titleY + titleH / 2);
@@ -467,18 +547,18 @@ export async function drawCard(
   ctx.textBaseline = "middle";
   let rightY = titleY + titleH / 2;
   if (role) {
-    ctx.fillStyle = HH.green500;
+    ctx.fillStyle = theme.muted;
     ctx.font = `700 ${Math.round(width * 0.022)}px "${monoFamily}"`;
     ctx.fillText(role, rightX, rightY);
     rightY += width * 0.036;
   }
   if (handle) {
-    ctx.fillStyle = HH.green700;
+    ctx.fillStyle = theme.header;
     ctx.font = `700 ${Math.round(width * 0.02)}px "${monoFamily}"`;
     ctx.fillText(`@${handle}`, rightX, role ? rightY : titleY + titleH / 2);
   }
 
-  ctx.fillStyle = HH.green700;
+  ctx.fillStyle = theme.header;
   ctx.font = `700 ${Math.round(width * 0.016)}px "${monoFamily}"`;
   fillTextSpaced(
     ctx,

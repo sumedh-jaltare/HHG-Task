@@ -22,7 +22,7 @@ export function GeneratorSection() {
       className="relative z-10 min-h-[40vh] w-full border-t-2 border-hh-yellow/15"
     >
       <div className="grid w-full md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start">
-        <div className="space-y-5 px-page py-10 sm:py-14">
+        <div className="space-y-5 px-page py-10 sm:py-14 md:col-start-1">
           <div>
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-hh-yellow">
               The studio
@@ -39,17 +39,12 @@ export function GeneratorSection() {
           <FormatToggle />
           <UploadZone />
           {rawImageUrl ? <CropStage /> : null}
-          {format === "card" ? <BuilderForm /> : null}
         </div>
 
-        <div className="min-w-0 px-page pb-6 md:col-start-1 md:pb-16">
-          <FrameControls />
-        </div>
-
-        <aside className="md:col-start-2 md:row-span-2 md:row-start-1 md:sticky md:top-20 md:self-start">
+        <aside className="sticky top-[max(4.5rem,env(safe-area-inset-top))] z-20 self-start md:col-start-2 md:row-span-2 md:row-start-1">
           <PinnedBoard
             pin={format === "card" ? "yellow" : "pink"}
-            className="rounded-none border-x-0 px-page pb-5 pt-7 md:min-h-full md:border-l md:border-r-0"
+            className="max-h-[min(52svh,420px)] overflow-y-auto rounded-none border-x-0 bg-hh-green-700/95 px-page pb-5 pt-7 backdrop-blur-sm md:max-h-none md:min-h-full md:overflow-visible md:border-l md:border-r-0 md:bg-hh-green-700/50 md:backdrop-blur-none"
           >
             <div id="canvas-output">
               {!croppedImageUrl ? <EmptyNotice /> : null}
@@ -60,6 +55,11 @@ export function GeneratorSection() {
             </div>
           </PinnedBoard>
         </aside>
+
+        <div className="min-w-0 space-y-5 px-page pb-10 pt-6 md:col-start-1 md:pb-16 md:pt-0">
+          {format === "card" ? <BuilderForm /> : null}
+          <FrameControls />
+        </div>
       </div>
     </section>
   );

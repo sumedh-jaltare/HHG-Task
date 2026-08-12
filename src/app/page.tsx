@@ -7,7 +7,7 @@ import { GeneratorSection } from "@/components/generator/GeneratorSection";
 
 export default function Home() {
   return (
-    <div className="studio-cork relative min-h-svh w-full overflow-x-hidden bg-hh-green-700">
+    <div className="studio-cork relative min-h-svh w-full overflow-x-clip bg-hh-green-700">
       <DotField />
       <header className="sticky top-0 z-30 flex w-full items-center justify-between gap-2 border-b border-hh-cream/10 bg-hh-green-700/80 px-page-sm py-3 backdrop-blur-sm sm:gap-4">
         <span className="min-w-0 shrink font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-hh-cream sm:shrink-0 sm:tracking-[0.28em]">

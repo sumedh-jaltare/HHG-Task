@@ -117,7 +117,7 @@ export function CardPreview() {
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-5"
     >
-      <div className="relative mx-auto w-full max-w-[280px]">
+      <div className="relative mx-auto w-full max-w-[220px] sm:max-w-[280px]">
         {!ready ? (
           <div
             aria-hidden

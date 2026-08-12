@@ -109,7 +109,7 @@ export function FramePreview() {
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-5"
     >
-      <div className="relative mx-auto w-full max-w-[320px]">
+      <div className="relative mx-auto w-full max-w-[240px] sm:max-w-[320px]">
         {!ready ? (
           <div
             aria-hidden

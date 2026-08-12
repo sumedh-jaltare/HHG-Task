@@ -10,8 +10,8 @@ import {
 import { type FramePropKind } from "@/lib/canvas/drawFrame";
 import { useGeneratorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 
 const PROP_LABELS: Record<FramePropKind, string> = {
   stamp: "GOA",
@@ -39,10 +39,31 @@ export function CardPreview() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const tiltRef = useRef<HTMLDivElement>(null);
   const dragId = useRef<string | null>(null);
   const drawGen = useRef(0);
   const [ready, setReady] = useState(false);
   const [drawError, setDrawError] = useState<Error | null>(null);
+
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  const sx = useSpring(px, { stiffness: 220, damping: 20 });
+  const sy = useSpring(py, { stiffness: 220, damping: 20 });
+  const rotateX = useTransform(sy, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(sx, [-0.5, 0.5], [-10, 10]);
+
+  const onTiltMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (dragId.current) return;
+    const box = tiltRef.current?.getBoundingClientRect();
+    if (!box) return;
+    px.set((event.clientX - box.left) / box.width - 0.5);
+    py.set((event.clientY - box.top) / box.height - 0.5);
+  };
+
+  const resetTilt = () => {
+    px.set(0);
+    py.set(0);
+  };
 
   useEffect(() => {
     if (format !== "card" || !croppedImageUrl) {
@@ -121,74 +142,88 @@ export function CardPreview() {
       className="space-y-5"
     >
       <div
-        className="relative mx-auto w-full max-w-[220px] overflow-hidden rounded-sm sm:max-w-[280px]"
-        style={{ backgroundColor: previewMatte }}
+        className="poster-tilt mx-auto w-full max-w-[220px] sm:max-w-[280px]"
+        style={{ ["--poster-rot" as string]: "2deg" }}
       >
-        {!ready ? (
-          <div
-            aria-hidden
-            className="absolute inset-0 animate-pulse bg-hh-green-700"
-          />
-        ) : null}
-        <canvas
-          ref={canvasRef}
-          width={CARD_EXPORT_WIDTH}
-          height={CARD_EXPORT_HEIGHT}
-          className={cn(
-            "relative z-[1] mx-auto aspect-[3/4] w-full shadow-stamp",
-            ready ? "opacity-100" : "opacity-0",
-          )}
-        />
-        <div ref={stageRef} className="absolute inset-0 z-[2] touch-none">
-          {frameProps.map((prop) => (
+        <motion.div
+          ref={tiltRef}
+          onPointerMove={onTiltMove}
+          onPointerLeave={resetTilt}
+          style={{
+            rotateX,
+            rotateY,
+            transformPerspective: 800,
+            backgroundColor: previewMatte,
+          }}
+          className="relative overflow-hidden rounded-sm shadow-stamp transition-[box-shadow] hover:shadow-stamp-sm"
+        >
+          {!ready ? (
             <div
-              key={prop.id}
-              className={cn(
-                "absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-start justify-end rounded-full",
-                selectedPropId === prop.id &&
-                  "ring-2 ring-hh-yellow ring-offset-2 ring-offset-hh-green-900",
-              )}
-              style={{ left: `${prop.x * 100}%`, top: `${prop.y * 100}%` }}
-            >
-              <button
-                type="button"
-                aria-label={`Move ${PROP_LABELS[prop.kind]}`}
-                aria-pressed={selectedPropId === prop.id}
-                className="absolute inset-0 cursor-grab rounded-full active:cursor-grabbing"
-                onPointerDown={(event) => {
-                  event.preventDefault();
-                  event.currentTarget.setPointerCapture(event.pointerId);
-                  dragId.current = prop.id;
-                  setSelectedPropId(prop.id);
-                }}
-                onPointerMove={(event) => {
-                  if (!dragId.current || !stageRef.current) return;
-                  const box = stageRef.current.getBoundingClientRect();
-                  moveFrameProp(
-                    dragId.current,
-                    (event.clientX - box.left) / box.width,
-                    (event.clientY - box.top) / box.height,
-                  );
-                }}
-                onPointerUp={() => {
-                  dragId.current = null;
-                }}
-                onPointerCancel={() => {
-                  dragId.current = null;
-                }}
-              />
-              <button
-                type="button"
-                aria-label={`Remove ${PROP_LABELS[prop.kind]}`}
-                onPointerDown={(event) => event.stopPropagation()}
-                onClick={() => removeFrameProp(prop.id)}
-                className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full bg-hh-green-900 text-[10px] font-bold text-hh-yellow"
+              aria-hidden
+              className="absolute inset-0 animate-pulse bg-hh-green-700"
+            />
+          ) : null}
+          <canvas
+            ref={canvasRef}
+            width={CARD_EXPORT_WIDTH}
+            height={CARD_EXPORT_HEIGHT}
+            className={cn(
+              "relative z-[1] mx-auto aspect-[3/4] w-full",
+              ready ? "opacity-100" : "opacity-0",
+            )}
+          />
+          <div ref={stageRef} className="absolute inset-0 z-[2] touch-none">
+            {frameProps.map((prop) => (
+              <div
+                key={prop.id}
+                className={cn(
+                  "absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-start justify-end rounded-full",
+                  selectedPropId === prop.id &&
+                    "ring-2 ring-hh-yellow ring-offset-2 ring-offset-hh-green-900",
+                )}
+                style={{ left: `${prop.x * 100}%`, top: `${prop.y * 100}%` }}
               >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
+                <button
+                  type="button"
+                  aria-label={`Move ${PROP_LABELS[prop.kind]}`}
+                  aria-pressed={selectedPropId === prop.id}
+                  className="absolute inset-0 cursor-grab rounded-full active:cursor-grabbing"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    dragId.current = prop.id;
+                    setSelectedPropId(prop.id);
+                    resetTilt();
+                  }}
+                  onPointerMove={(event) => {
+                    if (!dragId.current || !stageRef.current) return;
+                    const box = stageRef.current.getBoundingClientRect();
+                    moveFrameProp(
+                      dragId.current,
+                      (event.clientX - box.left) / box.width,
+                      (event.clientY - box.top) / box.height,
+                    );
+                  }}
+                  onPointerUp={() => {
+                    dragId.current = null;
+                  }}
+                  onPointerCancel={() => {
+                    dragId.current = null;
+                  }}
+                />
+                <button
+                  type="button"
+                  aria-label={`Remove ${PROP_LABELS[prop.kind]}`}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={() => removeFrameProp(prop.id)}
+                  className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full bg-hh-green-900 text-[10px] font-bold text-hh-yellow"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
       <p className="text-center font-mono text-xs leading-relaxed text-hh-cream/65">
         This is your Builder ID — download it or share straight to X below.

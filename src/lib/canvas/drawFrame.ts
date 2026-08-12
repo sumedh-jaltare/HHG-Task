@@ -124,12 +124,12 @@ export const RING_THEMES: Record<
     previewMatte: "#F5EFDF",
   },
   punch: {
-    collar: "#F5EFDF",
-    outer: "#E63888",
-    inner: "#F4D35E",
-    text: "#0D2820",
-    markA: "#E63888",
-    markB: "#12332A",
+    collar: "#E63888",
+    outer: "#F4D35E",
+    inner: "#F5EFDF",
+    text: "#F5EFDF",
+    markA: "#F4D35E",
+    markB: "#F5EFDF",
     previewMatte: "#0D2820",
   },
 };

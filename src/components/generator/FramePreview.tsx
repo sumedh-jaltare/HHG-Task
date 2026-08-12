@@ -3,6 +3,7 @@
 import { ExportActions } from "@/components/generator/ExportActions";
 import {
   FRAME_EXPORT_SIZE,
+  FRAME_NAME_MAX_LENGTH,
   FRAME_PROP_KINDS,
   STICKER_INKS,
   drawFrame,
@@ -222,10 +223,14 @@ export function FrameControls() {
         <input
           id="frame-name"
           type="text"
-          value={name}
-          maxLength={28}
+          value={name.slice(0, FRAME_NAME_MAX_LENGTH)}
+          maxLength={FRAME_NAME_MAX_LENGTH}
           placeholder="Optional — shows on the ring"
-          onChange={(event) => setBuilderDetails({ name: event.target.value })}
+          onChange={(event) =>
+            setBuilderDetails({
+              name: event.target.value.slice(0, FRAME_NAME_MAX_LENGTH),
+            })
+          }
           className="w-full rounded-xl border-2 border-hh-cream/20 bg-hh-green-900 px-3 py-2.5 font-mono text-sm text-hh-cream outline-none placeholder:text-hh-cream/35 focus:border-hh-yellow"
         />
       </label>

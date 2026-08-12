@@ -80,8 +80,10 @@ export function CropStage() {
             src={croppedImageUrl}
             alt="Cropped preview"
             className={cn(
-              "h-16 w-16 object-cover",
-              format === "frame" ? "rounded-full" : "h-[5.35rem] rounded-sm",
+              "object-cover",
+              format === "frame"
+                ? "h-16 w-16 rounded-full"
+                : "h-14 w-[4.1rem] rounded-sm",
             )}
           />
         </div>
@@ -90,7 +92,7 @@ export function CropStage() {
             Crop locked
           </p>
           <p className="mt-1 font-mono text-xs text-hh-cream/65">
-            {format === "frame" ? "1:1 frame" : "3:4 builder ID"}
+            {format === "frame" ? "1:1 frame" : "Builder photo"}
           </p>
         </div>
         <button
@@ -120,7 +122,7 @@ export function CropStage() {
           maxZoom={3}
           cropShape={format === "frame" ? "round" : "rect"}
           showGrid={false}
-          objectFit="cover"
+          objectFit="contain"
           onCropChange={(crop) => setCropSettings({ crop })}
           onZoomChange={(zoom) => setCropSettings({ zoom })}
           onCropComplete={onCropComplete}

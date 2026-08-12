@@ -84,11 +84,12 @@ export function resolveMarkColor(
   return contrastMarkColor(theme, preferred);
 }
 
+export const FRAME_NAME_MAX_LENGTH = 20;
+
 export function ringArcText(name: string) {
-  const trimmed = name.trim();
+  const trimmed = name.trim().slice(0, FRAME_NAME_MAX_LENGTH);
   if (!trimmed) return "HH GOA 2026";
-  const short = trimmed.length > 12 ? `${trimmed.slice(0, 11)}…` : trimmed;
-  return `HH GOA · ${short.toUpperCase()}`;
+  return `HH GOA · ${trimmed.toUpperCase()}`;
 }
 
 export const RING_THEMES: Record<

@@ -1,5 +1,6 @@
 import { canvasFamily, ensureCanvasFonts } from "@/lib/canvas/fonts";
 import { drawPropMark, type FrameProp } from "@/lib/canvas/drawFrame";
+import { CARD_LAYOUT } from "@/lib/image/aspect";
 
 export const CARD_EXPORT_WIDTH = 1080;
 export const CARD_EXPORT_HEIGHT = 1440;
@@ -354,7 +355,7 @@ export async function drawCard(
   ctx.fillStyle = theme.field;
   ctx.fillRect(0, 0, width, height);
 
-  const margin = width * 0.046;
+  const margin = width * CARD_LAYOUT.marginX;
   const panelX = margin;
   const panelY = margin * 1.08;
   const panelW = width - margin * 2;
@@ -416,9 +417,9 @@ export async function drawCard(
   );
 
   const photoX = panelX + width * 0.048;
-  const photoW = panelW - width * 0.096;
+  const photoW = panelW - width * CARD_LAYOUT.photoInsetX;
   const photoY = panelY + width * 0.108;
-  const photoH = height * 0.52;
+  const photoH = height * CARD_LAYOUT.photoHeightY;
   const photoR = width * 0.028;
   const border = Math.max(6, width * 0.008);
 

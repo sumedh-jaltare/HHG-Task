@@ -4,7 +4,7 @@
 
 :root {
   --background: #12332a;
-  --foreground: #f5efdf;
+  --foreground: #fff8eb;
 }
 
 html {
@@ -21,12 +21,12 @@ body {
 }
 
 ::selection {
-  background: #f4d35e;
+  background: #ffd000;
   color: #0d2820;
 }
 
 ::-moz-selection {
-  background: #f4d35e;
+  background: #ffd000;
   color: #0d2820;
 }
 

@@ -16,14 +16,14 @@ module.exports = {
             300: "#2D6A4F",
           },
           yellow: {
-            DEFAULT: "#F4D35E",
-            dark: "#E6BE3A",
+            DEFAULT: "#FFD000",
+            dark: "#E6BE00",
           },
           pink: {
             DEFAULT: "#E63888",
             dark: "#C22872",
           },
-          cream: "#F5EFDF",
+          cream: "#FFF8EB",
         },
       },
       fontFamily: {

@@ -27,18 +27,18 @@ const baloo = Baloo_2({
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
-  title: "HH Goa 2026 — Frame & Builder ID Generator",
+  title: "गोवा · HH Goa 2026 — Frame & Builder ID Generator",
   description:
     "Upload your photo, get a branded HH Goa 2026 X profile frame or Builder ID card in seconds.",
   openGraph: {
-    title: "HH Goa 2026 — Frame & Builder ID Generator",
+    title: "गोवा · HH Goa 2026 — Frame & Builder ID Generator",
     description:
       "Upload your photo, get a branded HH Goa 2026 X profile frame or Builder ID card in seconds.",
     images: ["/og-default.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HH Goa 2026 — Frame & Builder ID Generator",
+    title: "गोवा · HH Goa 2026 — Frame & Builder ID Generator",
     description:
       "Upload your photo, get a branded HH Goa 2026 X profile frame or Builder ID card in seconds.",
     images: ["/og-default.png"],

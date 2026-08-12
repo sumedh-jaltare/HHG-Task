@@ -20,6 +20,8 @@ export function HeroIllustration({ className }: HeroIllustrationProps) {
   const hillY = useTransform(sy, (v) => v * 5);
   const palmX = useTransform(sx, (v) => v * 18);
   const palmRotate = useTransform(sx, (v) => v * 4);
+  const birdX = useTransform(sx, (v) => v * -12);
+  const birdY = useTransform(sy, (v) => v * -6);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -66,6 +68,34 @@ export function HeroIllustration({ className }: HeroIllustrationProps) {
           <line x1="400" y1="250" x2="354" y2="96" />
         </g>
         <circle cx="400" cy="428" r="148" fill="url(#hh-sun)" />
+      </motion.g>
+
+      {/* Distant bird silhouettes */}
+      <motion.g
+        style={{ x: birdX, y: birdY }}
+        fill="#0D2820"
+        opacity="0.7"
+      >
+        <path
+          transform="translate(268 148) scale(1)"
+          d="M0 6 C5 1 9 1 12 5 C14 2 18 0 23 4 C17 5 14 9 12 11 C10 9 6 6 0 6 Z"
+        />
+        <path
+          transform="translate(302 128) scale(0.85)"
+          d="M0 6 C5 1 9 1 12 5 C14 2 18 0 23 4 C17 5 14 9 12 11 C10 9 6 6 0 6 Z"
+        />
+        <path
+          transform="translate(338 156) scale(0.7)"
+          d="M0 6 C5 1 9 1 12 5 C14 2 18 0 23 4 C17 5 14 9 12 11 C10 9 6 6 0 6 Z"
+        />
+        <path
+          transform="translate(488 132) scale(0.9)"
+          d="M0 6 C5 1 9 1 12 5 C14 2 18 0 23 4 C17 5 14 9 12 11 C10 9 6 6 0 6 Z"
+        />
+        <path
+          transform="translate(522 118) scale(0.65)"
+          d="M0 6 C5 1 9 1 12 5 C14 2 18 0 23 4 C17 5 14 9 12 11 C10 9 6 6 0 6 Z"
+        />
       </motion.g>
 
       <motion.g style={{ x: hillX, y: hillY }}>

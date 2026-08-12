@@ -184,7 +184,14 @@ export function ExportActions({
   };
 
   return (
-    <div className="relative w-full space-y-3 pb-[env(safe-area-inset-bottom)]">
+    <>
+      <div
+        className={cn(
+          "relative w-full space-y-2",
+          // Mobile: always-reachable dock after crop (this tree only mounts then).
+          "max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:border-t max-md:border-hh-cream/15 max-md:bg-hh-green-700/95 max-md:px-page max-md:pt-3 max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-10px_28px_rgba(0,0,0,0.28)] max-md:backdrop-blur-sm",
+        )}
+      >
       <AnimatePresence>
         {downloaded ? (
           <motion.span
@@ -194,19 +201,19 @@ export function ExportActions({
             animate={{ scale: 1, opacity: 1, rotate: -8 }}
             exit={{ opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 18 }}
-            className="pointer-events-none absolute -right-1 -top-8 z-10 font-stamp text-2xl font-extrabold text-hh-pink"
+            className="pointer-events-none absolute -right-1 -top-8 z-10 font-stamp text-2xl font-extrabold text-hh-pink max-md:hidden"
           >
             गोवा
           </motion.span>
         ) : null}
       </AnimatePresence>
-      <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <div className="flex w-full flex-row flex-wrap gap-2">
         <button
           type="button"
           onClick={() => void handleDownload()}
           disabled={!ready || busy}
           className={cn(
-            "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm bg-hh-yellow px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-green-900 shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 sm:px-4",
+            "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm bg-hh-yellow px-2.5 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-green-900 shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 sm:px-4",
           )}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -219,7 +226,8 @@ export function ExportActions({
                 className="inline-flex items-center gap-2"
               >
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                Saving…
+                <span className="md:hidden">…</span>
+                <span className="hidden md:inline">Saving…</span>
               </motion.span>
             ) : downloaded ? (
               <motion.span
@@ -230,7 +238,7 @@ export function ExportActions({
                 className="inline-flex items-center gap-2"
               >
                 <Check className="h-4 w-4" aria-hidden />
-                Saved
+                <span>Saved</span>
               </motion.span>
             ) : (
               <motion.span
@@ -241,7 +249,7 @@ export function ExportActions({
                 className="inline-flex items-center gap-2"
               >
                 <Download className="h-4 w-4" aria-hidden />
-                Download
+                <span>Download</span>
               </motion.span>
             )}
           </AnimatePresence>
@@ -253,23 +261,25 @@ export function ExportActions({
             onClick={() => void handleCopy()}
             disabled={!ready || busy}
             className={cn(
-              "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm border-2 border-hh-cream bg-transparent px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-cream shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-cream hover:text-hh-green-900 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-cream sm:px-4",
+              "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm border-2 border-hh-cream bg-transparent px-2.5 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-cream shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-cream hover:text-hh-green-900 hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-cream sm:px-4",
             )}
           >
             {copying ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                Copying…
+                <span className="md:hidden">…</span>
+                <span className="hidden md:inline">Copying…</span>
               </>
             ) : copied ? (
               <>
                 <Check className="h-4 w-4" aria-hidden />
-                Copied
+                <span>Copied</span>
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" aria-hidden />
-                Copy Image
+                <span className="md:hidden">Copy</span>
+                <span className="hidden md:inline">Copy Image</span>
               </>
             )}
           </button>
@@ -280,26 +290,28 @@ export function ExportActions({
           onClick={() => void handleShare()}
           disabled={!ready || busy}
           className={cn(
-            "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm border-2 border-hh-pink bg-transparent px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-pink shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-pink hover:text-hh-cream hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-pink sm:px-4",
+            "ticket-stub inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm border-2 border-hh-pink bg-transparent px-2.5 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-hh-pink shadow-stamp transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-hh-pink hover:text-hh-cream hover:shadow-stamp-sm active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-transparent disabled:hover:text-hh-pink sm:px-4",
           )}
         >
           {sharing ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              Sharing…
+              <span className="md:hidden">…</span>
+              <span className="hidden md:inline">Sharing…</span>
             </>
           ) : (
             <>
               <Share2 className="h-4 w-4" aria-hidden />
-              Share to X
+              <span className="md:hidden">Share</span>
+              <span className="hidden md:inline">Share to X</span>
             </>
           )}
         </button>
       </div>
 
-      <div aria-live="polite" className="min-h-[1.25rem]">
+      <div aria-live="polite" className="min-h-[1.25rem] max-md:min-h-0">
         {error ? (
-          <p className="font-mono text-sm leading-relaxed text-red-300">
+          <p className="font-mono text-sm leading-relaxed text-red-300 max-md:text-xs">
             {error}{" "}
             {!/download/i.test(error) ? (
               <span className="text-hh-cream/70">
@@ -308,9 +320,17 @@ export function ExportActions({
             ) : null}
           </p>
         ) : downloaded ? (
-          <p className="font-mono text-xs text-hh-yellow">PNG saved to your downloads.</p>
+          <p className="font-mono text-xs text-hh-yellow max-md:hidden">
+            PNG saved to your downloads.
+          </p>
         ) : null}
       </div>
-    </div>
+      </div>
+      {/* Keep page scroll clear of the mobile dock */}
+      <div
+        aria-hidden
+        className="pointer-events-none max-md:h-[calc(5.25rem+env(safe-area-inset-bottom))] md:hidden"
+      />
+    </>
   );
 }

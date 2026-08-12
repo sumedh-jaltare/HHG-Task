@@ -20,6 +20,16 @@ body {
   font-family: var(--font-space-mono), ui-monospace, monospace;
 }
 
+::selection {
+  background: #f4d35e;
+  color: #0d2820;
+}
+
+::-moz-selection {
+  background: #f4d35e;
+  color: #0d2820;
+}
+
 @layer base {
   button:focus-visible,
   a:focus-visible,
